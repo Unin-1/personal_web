@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "github": {
+    "repositories": {
+      "unin-1/personal_web": {
+        "repo": "Unin-1/personal_web",
+        "name": "personal_web",
+        "description": "my self-introduction web",
+        "language": "",
+        "stars": 0,
+        "url": "https://github.com/Unin-1/personal_web",
+        "status": "fresh",
+        "lastAttemptAt": "2026-10-15T12:18:48.802Z",
+        "lastSuccessAt": "2026-10-15T12:18:48.802Z"
+      }
+    }
+  },
+  "bilibili": {
+    "uid": "",
+    "items": [],
+    "status": "unconfigured",
+    "lastAttemptAt": null,
+    "lastSuccessAt": null
+  }
+}

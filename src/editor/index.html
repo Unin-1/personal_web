@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="editor-token" content="__EDITOR_TOKEN__" />
+  <title>Unin · 作者布局工作台</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon/unin.svg" />
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;background:#f5f4fb;color:#28233e;font:14px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
+    button,input,select{font:inherit}
+    button{cursor:pointer;border:1px solid #ded9ec;border-radius:10px;background:#fff;padding:8px 13px;color:inherit}
+    button:hover{background:#eee9fa}
+    button:disabled{cursor:wait;opacity:.55}
+    button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid #9f7aea;outline-offset:2px}
+    .topbar{position:sticky;top:0;z-index:2;background:#ffffffed;backdrop-filter:blur(12px);border-bottom:1px solid #e5e0ef;padding:17px 24px;display:flex;justify-content:space-between;align-items:center;gap:20px}
+    .brand{font-size:19px;font-weight:750}
+    .tag{display:inline-block;margin-left:8px;background:#eee6ff;color:#6946ad;border-radius:7px;padding:2px 7px;font-size:11px}
+    .muted{color:#7a728c}
+    .top-actions{display:flex;gap:8px;align-items:center}
+    .primary{background:#7958bd;border-color:#7958bd;color:#fff}
+    .primary:hover{background:#6846aa}
+    .workspace{display:grid;grid-template-columns:380px minmax(0,1fr);gap:22px;padding:22px;max-width:1920px;margin:auto}
+    .controls{min-width:0}
+    .panel{border:1px solid #e5e0ef;border-radius:17px;background:#fff;margin-bottom:15px;padding:19px}
+    h1,h2,h3,p{margin:0}
+    h2{font-size:16px;margin-bottom:6px}
+    h3{font-size:13px;color:#716583;margin:12px 0 7px}
+    .hint{font-size:12px;color:#7a728c;margin:6px 0 12px}
+    .row{display:flex;gap:8px;align-items:center}
+    .field{display:grid;gap:4px;margin:11px 0}
+    .field input:not([type=checkbox]),.field select{width:100%;min-width:0;background:#faf9fd;border:1px solid #ddd6e9;border-radius:9px;padding:8px 10px;color:inherit}
+    .field.inline{display:flex;align-items:center;justify-content:space-between}
+    .field input[type=range]{padding:0;accent-color:#7958bd}
+    .check{accent-color:#7958bd;width:16px;height:16px}
+    .module-list{list-style:none;padding:3px;margin:7px 0;min-height:52px;background:#faf9fd;border:1px dashed #ddd5eb;border-radius:11px}
+    .module-row{display:flex;align-items:center;gap:8px;padding:9px;margin:4px 0;border:1px solid #e9e4f0;background:#fff;border-radius:8px}
+    .module-row[draggable=true]{cursor:grab}
+    .module-row.dragging{opacity:.35}
+    .module-row .label{flex:1;min-width:0}
+    .module-row .handle{color:#aaa0bb}
+    .module-row .icon-button{padding:1px 5px;border-radius:5px;font-size:12px}
+    .module-row select{max-width:65px;border:0;background:#f5f2fa;border-radius:5px;font-size:11px;padding:3px}
+    .field.inline select{width:auto}
+    .module-row.off .label{color:#aaa1b9;text-decoration:line-through}
+    .drop-target{outline:2px solid #ad8bd7;outline-offset:2px}
+    .preview-panel{min-width:0;position:sticky;top:101px;align-self:start}
+    .preview-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+    .segmented{border:0;margin:0;min-width:0;display:flex;gap:4px;background:#eae5f3;padding:4px;border-radius:11px}
+    .segmented button{border:0;background:transparent;padding:6px 12px}
+    .segmented button[aria-pressed=true]{background:#fff;box-shadow:0 1px 5px #30204014}
+    .preview-stage{height:calc(100vh - 190px);min-height:520px;position:relative;display:block;overflow:hidden;background:#e5dfef;border-radius:17px;border:1px solid #d8d1e4;padding:15px}
+    .preview-stage iframe{position:absolute;top:15px;max-width:none;min-width:0;min-height:0;transform-origin:top left;border:0;border-radius:10px;background:#fff;box-shadow:0 12px 30px #28154412}
+    .status{font-size:12px;color:#766c87;max-width:310px}
+    .status[data-kind=error]{color:#b53550}
+    .status[data-kind=success]{color:#24765d}
+    .notice{background:#f0eafb;color:#6c5193;padding:12px 16px;border-radius:12px;font-size:12px;margin-bottom:15px}
+    a{color:#7958bd;text-decoration:none}
+    details summary{cursor:pointer;font-weight:650}
+    .range-label{display:flex;justify-content:space-between}
+    .bottom-note{font-size:12px;color:#8a8198;padding:0 8px 20px}
+    button.small{padding:5px 9px;font-size:12px}
+    @media(max-width:1050px){.workspace{grid-template-columns:330px minmax(0,1fr);padding:14px;gap:14px}
+    .topbar{padding:14px}
+    .status{max-width:200px}
+    }
+    @media(max-width:780px){.workspace{display:flex;flex-direction:column}
+    .preview-panel{position:static}
+    .preview-stage{height:620px;min-height:0}
+    .topbar{align-items:flex-start;flex-direction:column;gap:10px}
+    .top-actions{width:100%;flex-wrap:wrap}
+    .status{flex:1;max-width:none}
+    .brand{font-size:17px}
+    .tag{font-size:10px}
+    .preview-toolbar{flex-wrap:wrap}
+    }
+  </style>
+  <script type="module" src="/__editor/client.js"></script>
+</head>
+<body data-preview-base="__PREVIEW_BASE__">
+  <header class="topbar">
+    <div><div class="brand">✦ 作者布局工作台 <span class="tag">LOCAL ONLY</span></div><div class="muted">把喜欢的日常，放在最合适的位置。</div></div>
+    <div class="top-actions"><p id="status" class="status" role="status" aria-live="polite">正在载入配置…</p><button type="button" id="reload" disabled>重新载入</button><button type="button" id="save" class="primary" disabled>保存到本地</button></div>
+  </header>
+  <main class="workspace">
+    <div class="controls">
+      <div class="notice">仅你在本机启动 <strong>npm run edit</strong> 时可用。保存到 <strong>src/config/layout.json</strong> 后，提交并推送 Git 才会更新线上博客。</div>
+      <section class="panel"><h2>首页模块</h2><p class="hint">拖动调整顺序，或使用 ↑ ↓ 按钮。关闭勾选可隐藏模块。</p><ul id="home-list" class="module-list" data-list="home" aria-label="首页模块排序"></ul></section>
+      <section class="panel"><h2>全站侧栏</h2><label class="field inline">显示侧栏<input class="check" type="checkbox" data-config="sidebar.enabled" /></label><label class="field inline">桌面布局<select data-config="sidebar.position"><option value="both">双侧栏</option><option value="left">左侧栏</option><option value="right">右侧栏</option></select></label><p class="hint">可在左右两栏间拖动，也可用行内选单移动。手机自动合并到页底。目录仅在文章内显示。</p><h3>左侧栏</h3><ul id="left-list" class="module-list" data-list="left" aria-label="左侧栏模块排序"></ul><h3>右侧栏</h3><ul id="right-list" class="module-list" data-list="right" aria-label="右侧栏模块排序"></ul></section>
+      <section class="panel"><h2>视觉与图片</h2><label class="field">文章默认布局<select data-config="visual.postListMode"><option value="list">列表</option><option value="grid">网格</option></select></label><label class="field">壁纸模式<select data-config="visual.wallpaperMode"><option value="banner">横幅</option><option value="fullscreen">全屏</option><option value="overlay">透明覆盖</option><option value="none">纯色</option></select></label><label class="field">桌面图片<input data-config="visual.desktopImage" maxlength="2048" placeholder="/assets/images/my-banner.webp" /></label><label class="field">手机图片<input data-config="visual.mobileImage" maxlength="2048" placeholder="/assets/images/my-mobile.webp" /></label><p class="hint">图片放 public/assets/ 下，填写 /assets/文件夹/文件名；也支持 src/assets/ 下相对路径与 HTTPS 图片链接。请先压缩自己的图片。</p><label class="field">横幅主标题<input data-config="visual.title" maxlength="100" /></label><label class="field">横幅副标题<input data-config="visual.subtitle" maxlength="250" /></label><label class="field"><span class="range-label">主题色相<output id="hue-output"></output></span><input type="range" min="0" max="360" step="1" data-config="visual.hue" /></label><label class="field"><span class="range-label">遮罩暗度<output id="dimOpacity-output"></output></span><input type="range" min="0" max="1" step="0.05" data-config="visual.dimOpacity" /></label><label class="field"><span class="range-label">页面宽度（rem）<output id="pageWidth-output"></output></span><input type="range" min="60" max="120" step="1" data-config="visual.pageWidth" /></label><label class="field"><span class="range-label">卡片不透明度<output id="cardOpacity-output"></output></span><input type="range" min="0.3" max="1" step="0.01" data-config="visual.cardOpacity" /></label><label class="field"><span class="range-label">背景模糊（px）<output id="blur-output"></output></span><input type="range" min="0" max="30" step="1" data-config="visual.blur" /></label></section>
+      <p class="bottom-note">未保存更改只影响预览。关闭此页面前请保存；本地配置也可直接用文本编辑器修改。</p>
+    </div>
+    <section class="preview-panel" aria-label="网站预览">
+      <div class="preview-toolbar"><fieldset class="segmented" aria-label="预览尺寸"><button type="button" id="desktop" aria-pressed="true">桌面</button><button type="button" id="mobile" aria-pressed="false">手机</button></fieldset><div class="row"><button type="button" class="small" id="refresh-preview">刷新预览</button><a id="open-site" target="_blank" rel="noopener" href="__PREVIEW_BASE__">打开博客 ↗</a></div></div>
+      <div id="preview-stage" class="preview-stage"><iframe id="preview" title="博客实时预览" src="__PREVIEW_BASE__?editor-preview=1"></iframe></div>
+      <p class="hint">模块、文字与主题色实时预览；切换壁纸模式或侧栏后，保存并刷新可查看完整页面效果。预览只在此本地工作台内接收修改。</p>
+    </section>
+  </main>
+</body>
+</html>

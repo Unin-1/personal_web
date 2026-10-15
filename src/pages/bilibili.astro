@@ -1,0 +1,83 @@
+---
+import { Icon } from "astro-icon/components";
+import { siteConfig } from "@/config";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+import { readBilibiliSnapshot, watchingStatusLabels } from "@/utils/bilibili-utils";
+import "@/styles/pages/common.css";
+
+if (!siteConfig.pages.bilibili) return Astro.redirect(url("/404/"));
+const data = readBilibiliSnapshot();
+const updatedAt = data.lastSuccessAt ? new Date(data.lastSuccessAt).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" }) : null;
+---
+
+<MainGridLayout title="追番" description="收藏喜欢的故事，记录自己的观看旅程。">
+  <section class="page-shell">
+    <header class="card-base page-header">
+      <div class="page-heading">
+        <div class="page-icon" aria-hidden="true"><Icon name="fa7-brands:bilibili" /></div>
+        <div><h2>我的追番</h2><p>收藏喜欢的故事，记录自己的观看旅程。</p></div>
+      </div>
+      {updatedAt && <p class="page-updated">数据更新于 <time datetime={data.lastSuccessAt!}>{updatedAt}</time></p>}
+    </header>
+
+    {data.status === "stale" && <p class="card-base px-6 py-4 text-sm" role="status">暂时无法同步 Bilibili，正在展示上次成功获取的收藏。</p>}
+
+    {!data.uid ? (
+      <div class="card-base px-8 py-16 text-center">
+        <Icon name="material-symbols:movie-outline" class="mx-auto mb-4 text-5xl text-(--primary)" />
+        <h3 class="text-xl font-bold mb-3">追番清单即将开启</h3>
+        <p class="text-50">还没有添加 Bilibili 公开追番清单，先去发现喜欢的故事吧。</p>
+      </div>
+    ) : data.items.length === 0 ? (
+      <div class="card-base px-8 py-16 text-center">
+        <h3 class="text-xl font-bold mb-3">{data.status === "unavailable" ? "追番清单暂时无法获取" : "还没有公开的追番收藏"}</h3>
+        <p class="text-50">{data.status === "unavailable" ? "稍后更新时会再次尝试同步。" : "遇到心动的作品后，这里就会慢慢热闹起来。"}</p>
+      </div>
+    ) : (
+      <anime-filter class="block">
+        <div class="card-base px-6 py-4 mb-4">
+          <label for="anime-search" class="block text-sm mb-2">搜索我的追番</label>
+          <input id="anime-search" type="search" data-anime-search placeholder="输入作品名" class="w-full rounded-xl border border-(--line-divider) bg-transparent px-4 py-2" />
+          <p class="mt-3 text-xs text-50">“番剧更新”是作品最新集数；“我的进度”和观看状态由我手动记录。</p>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+          {data.items.map((anime) => (
+            <article class="card-base overflow-hidden" data-anime-title={anime.title.toLowerCase()}>
+              <a href={anime.link} target="_blank" rel="noopener noreferrer" class="block aspect-3/2 overflow-hidden bg-(--btn-regular-bg)" aria-label={`在 Bilibili 查看 ${anime.title}`}>
+                {anime.poster ? <img src={anime.poster} alt={anime.title} loading="lazy" decoding="async" referrerpolicy="no-referrer" class="w-full h-full object-cover" /> : <div class="h-full grid place-items-center"><Icon name="material-symbols:movie-outline" class="text-5xl text-(--primary)" /></div>}
+              </a>
+              <div class="p-5">
+                <h3 class="font-bold text-lg mb-3"><a href={anime.link} target="_blank" rel="noopener noreferrer" class="hover:text-(--primary)">{anime.title}</a></h3>
+                <dl class="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2 text-sm">
+                  <dt class="text-50">番剧更新</dt><dd>{anime.epStatus || "暂无更新信息"}</dd>
+                  <dt class="text-50">我的进度</dt><dd>{anime.watchedEpisodes !== undefined ? `已看 ${anime.watchedEpisodes} 集` : "尚未记录"}</dd>
+                  <dt class="text-50">观看状态</dt><dd>{anime.status ? watchingStatusLabels[anime.status] : "尚未记录"}</dd>
+                  {anime.rating > 0 && <><dt class="text-50">平台评分</dt><dd>{anime.rating.toFixed(1)}</dd></>}
+                </dl>
+              </div>
+            </article>
+          ))}
+        </div>
+        <p data-anime-empty hidden class="card-base p-8 text-center" role="status">没有找到这部作品。</p>
+      </anime-filter>
+    )}
+  </section>
+</MainGridLayout>
+
+<script>
+  class AnimeFilter extends HTMLElement {
+    handleInput = () => {
+      const query = (this.querySelector<HTMLInputElement>("[data-anime-search]")?.value ?? "").trim().toLowerCase();
+      let count = 0;
+      this.querySelectorAll<HTMLElement>("[data-anime-title]").forEach((card) => {
+        card.hidden = !(card.dataset.animeTitle ?? "").includes(query);
+        if (!card.hidden) count += 1;
+      });
+      const empty = this.querySelector<HTMLElement>("[data-anime-empty]");
+      if (empty) empty.hidden = count > 0;
+    };
+    connectedCallback() { this.addEventListener("input", this.handleInput); }
+    disconnectedCallback() { this.removeEventListener("input", this.handleInput); }
+  }
+  if (!customElements.get("anime-filter")) customElements.define("anime-filter", AnimeFilter);
+</script>

@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "homeModules": [
+    { "id": "intro", "enabled": true },
+    { "id": "featured", "enabled": true },
+    { "id": "posts", "enabled": true },
+    { "id": "projects", "enabled": true },
+    { "id": "gallery", "enabled": true },
+    { "id": "anime", "enabled": true },
+    { "id": "links", "enabled": true }
+  ],
+  "sidebar": {
+    "enabled": true,
+    "position": "left",
+    "left": [
+      { "id": "profile", "enabled": true, "sticky": false },
+      { "id": "announcement", "enabled": true, "sticky": false },
+      { "id": "music", "enabled": true, "sticky": false },
+      { "id": "categories", "enabled": true, "sticky": false },
+      { "id": "tags", "enabled": true, "sticky": false },
+      { "id": "sidebarToc", "enabled": true, "sticky": false }
+    ],
+    "right": [
+      { "id": "stats", "enabled": false, "sticky": false },
+      { "id": "calendar", "enabled": false, "sticky": false },
+      { "id": "siteInfo", "enabled": false, "sticky": false }
+    ]
+  },
+  "visual": {
+    "wallpaperMode": "fullscreen",
+    "desktopImage": "/assets/backgrounds/summer-sky.webp",
+    "mobileImage": "/assets/backgrounds/summer-sky-mobile.webp",
+    "title": "Unin 的次元手记",
+    "subtitle": "记录代码、灵感与热爱的每个瞬间。",
+    "dimOpacity": 0.2,
+    "hue": 165,
+    "pageWidth": 90,
+    "cardOpacity": 0.88,
+    "blur": 8,
+    "postListMode": "list"
+  }
+}

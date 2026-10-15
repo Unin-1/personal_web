@@ -2,25 +2,30 @@
 
 ## Project Scope & Current State
 
-This repository is the starting point for a personal website. Website source code, a package manifest, and tests have not been added. The structure below guides the first implementation.
+This repository contains Unin's anime-inspired personal blog, built with Astro, Svelte, and TypeScript from a pinned Firefly theme snapshot. It produces a static GitHub Pages site and includes a local-only author layout editor.
 
 ## Project Structure & Module Organization
 
-For an initial static website, use:
-
-- `index.html` for the homepage and document metadata.
-- `src/styles/` for CSS and `src/scripts/` for JavaScript.
-- `assets/` for images, icons, and fonts. Optimize images before adding them.
-- `tests/` for automated tests when a test runner is introduced.
-
-Organize About, Projects, and Contact clearly. Update this guide when introducing a framework.
+- `src/pages/` contains Astro routes; `src/layouts/` and `src/components/` contain shared layouts and feature UI.
+- `src/content/posts/`, `projects/`, and `spec/` contain Markdown/MDX articles, project introductions, and About/Friends content. Collection schemas live in `src/content.config.ts`.
+- `src/config/` contains site settings. `layout.json` is the shared source for manual and visual layout editing.
+- `src/styles/`, `src/scripts/`, `src/utils/`, and `src/plugins/` contain presentation, browser behavior, shared helpers, and Markdown processing.
+- `public/assets/` and `public/gallery/<album-id>/` contain distributable media. Optimize images and record original asset sources in `assets-origin.md`.
+- `src/editor/` and `scripts/editor/` contain the author-only local workbench; exclude its routes, scripts, and write API from production.
+- `config/external-sources.json` selects public GitHub repositories and a Bilibili UID; `scripts/sync-external-data.mjs` creates the cached build snapshot in `src/data/`.
+- `tests/*.test.js` contains Node behavior tests; `tests/e2e/` contains Playwright browser tests. `docs/` documents content maintenance, architecture, and deployment.
+- `.github/workflows/pages.yml` validates branches and publishes `main` to GitHub Pages under `/personal_web/`.
 
 ## Build, Test, and Development Commands
 
-No development, build, lint, or test commands are configured yet.
+Use Node.js 24 and pnpm 11; install with `pnpm install --frozen-lockfile`.
 
-- After creating `index.html`, run `python -m http.server 8000` from the root and open `http://localhost:8000`. Python is required.
-- If Node.js tooling is introduced, define `npm run dev` (development), `npm run build` (production), `npm run lint` (style checks), and `npm test` (tests) in `package.json` before using them.
+- `npm run dev`: ordinary development at `/personal_web/`.
+- `npm run edit`: local-only author workbench at `http://127.0.0.1:4321/__editor/`.
+- `npm run check` and `npm run lint`: Astro/TypeScript diagnostics and read-only Biome checks.
+- `npm test`: Node behavior and regression tests.
+- `npm run build`: external-data sync, static build, search indexing, and output validation.
+- `npm run preview`: serve the production output; `npm run test:e2e`: Playwright validation using ports 4321 and 4322.
 
 ## Coding Style & Naming Conventions
 
@@ -28,7 +33,7 @@ Use two-space indentation and semantic HTML. Use `camelCase` for JavaScript vari
 
 ## Testing Guidelines
 
-No test runner or coverage threshold exists. Check desktop/mobile layouts, keyboard navigation, image alternatives, links, and console errors. Use `*.test.js` for future tests; document the runner and cover interactions and regressions.
+Use Node's built-in test runner for `*.test.js` and Playwright for browser interactions. Cover meaningful regressions in editor persistence and access checks, source sync/cache isolation, and music behavior. Check desktop/mobile layouts, keyboard navigation, image alternatives, links, and console errors. Browser tests must restore any layout files they temporarily change. Run output validation to verify `/personal_web/` paths and production exclusion of author tools.
 
 ## Commit & Pull Request Guidelines
 
