@@ -32,3 +32,5 @@ Constraints: original environment only, no people or character closeups, no text
 ## 界面预览图
 
 `docs/previews/home-desktop.webp` 与 `layout-editor.webp` 来自本项目 Playwright 验收截图，经 sharp 以 WebP 质量 80 压缩；仅展示项目自有界面和上述原创壁纸，分别为 98,144 与 96,284 bytes。
+
+`docs/previews/sidebar-colors.webp` 为侧栏配色工作台的 Playwright 验收截图，使用 sharp 以 WebP 质量 82 压缩；原始截图仅保留在本地 `.cache/sidebar-colors/`。

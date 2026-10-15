@@ -10,6 +10,8 @@
     document.documentElement.style.setProperty("--hue", String(visual.hue));
     document.documentElement.style.setProperty("--page-width", `${visual.pageWidth}rem`);
     document.documentElement.style.setProperty("--card-transparent-opacity", String(visual.cardOpacity));
+    document.documentElement.style.setProperty("--sidebar-card-bg-light", visual.sidebarCardColorLight);
+    document.documentElement.style.setProperty("--sidebar-card-bg-dark", visual.sidebarCardColorDark);
     document.documentElement.style.setProperty("--overlay-blur", `${visual.blur}px`);
     document.documentElement.style.setProperty("--fullscreen-blur", `${visual.blur}px`);
     for (const item of homeModules) {

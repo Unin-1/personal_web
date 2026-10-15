@@ -36,6 +36,8 @@
     "hue": 165,
     "pageWidth": 90,
     "cardOpacity": 0.88,
+    "sidebarCardColorLight": "#ffffff",
+    "sidebarCardColorDark": "#1d2523",
     "blur": 8,
     "postListMode": "list"
   }

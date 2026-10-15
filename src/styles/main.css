@@ -369,6 +369,17 @@ html {
         background-color: var(--card-bg-transparent) !important;
     }
 
+    /* Sidebars keep solid reading surfaces in every wallpaper mode, including mobile. */
+    [data-editor-sidebar] {
+        --card-bg: var(--sidebar-card-bg);
+        --card-bg-transparent: var(--sidebar-card-bg);
+    }
+
+    /* Custom widget elements sit inside wrappers and need their own block surface. */
+    [data-editor-sidebar] widget-layout {
+        display: block;
+    }
+
     h1, h2, h3, h4, h5, h6, p, a, span, li, ul, ol, blockquote, code, pre, table, th, td, strong {
         @apply transition-colors duration-150;
     }

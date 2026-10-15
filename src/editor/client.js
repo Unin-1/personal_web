@@ -13,6 +13,8 @@ let dirty = false;
 let dragging;
 let changeVersion = 0;
 let previewSize = "desktop";
+let saving = false;
+const invalidColorFields = new Set();
 
 function report(message, kind = "") { status.textContent = message; status.dataset.kind = kind; }
 async function api(method, body) {
@@ -24,11 +26,22 @@ async function api(method, body) {
 function preview() {
   if (layout) frame.contentWindow?.postMessage({ type: "unin-layout-draft", layout, base: document.body.dataset.previewBase }, location.origin);
 }
+function updateSaveAvailability() {
+  saveButton.disabled = !dirty || saving || invalidColorFields.size > 0;
+}
+function colorFeedback(field, valid) {
+  const key = field.dataset.colorHex;
+  const message = valid ? "" : "请输入 #RRGGBB 六位颜色，例如 #f5f8f6；不支持透明色。";
+  if (valid) invalidColorFields.delete(key); else invalidColorFields.add(key);
+  field.setAttribute("aria-invalid", String(!valid));
+  field.setCustomValidity(message);
+  document.getElementById(field.getAttribute("aria-describedby")).textContent = message;
+}
 function changed() {
   dirty = true;
   changeVersion++;
-  report("有未保存更改 · 预览已更新");
-  saveButton.disabled = false;
+  report(invalidColorFields.size ? "请修正侧栏背景色后保存 · 预览保留上次有效颜色" : "有未保存更改 · 预览已更新", invalidColorFields.size ? "error" : "");
+  updateSaveAvailability();
   preview();
 }
 function listFor(name) { return name === "home" ? layout.homeModules : layout.sidebar[name]; }
@@ -110,8 +123,25 @@ for (const field of document.querySelectorAll("[data-config]")) {
   field.addEventListener("input", () => {
     if (!layout) return;
     const [group, key] = field.dataset.config.split(".");
+    if (field.dataset.colorHex) {
+      const valid = /^#[0-9a-fA-F]{6}$/.test(field.value);
+      colorFeedback(field, valid);
+      if (!valid) { changed(); return; }
+      document.querySelector(`[data-color-picker="${key}"]`).value = field.value;
+    }
     layout[group][key] = field.type === "checkbox" ? field.checked : field.type === "range" ? Number(field.value) : field.value;
     updateOutputs(); changed();
+  });
+}
+for (const picker of document.querySelectorAll("[data-color-picker]")) {
+  picker.addEventListener("input", () => {
+    if (!layout) return;
+    const key = picker.dataset.colorPicker;
+    const field = document.querySelector(`[data-color-hex="${key}"]`);
+    field.value = picker.value;
+    colorFeedback(field, true);
+    layout.visual[key] = picker.value;
+    changed();
   });
 }
 async function load() {
@@ -119,9 +149,14 @@ async function load() {
   reloadButton.disabled = true;
   try {
     const result = await api("GET"); layout = result.layout; revision = result.revision; dirty = false;
+    invalidColorFields.clear();
     for (const field of document.querySelectorAll("[data-config]")) {
       const [group, key] = field.dataset.config.split(".");
       if (field.type === "checkbox") field.checked = layout[group][key]; else field.value = layout[group][key];
+      if (field.dataset.colorHex) {
+        colorFeedback(field, true);
+        document.querySelector(`[data-color-picker="${key}"]`).value = field.value;
+      }
     }
     renderLists(); updateOutputs(); saveButton.disabled = true;
     report("已载入本地配置"); preview();
@@ -130,15 +165,16 @@ async function load() {
 }
 reloadButton.addEventListener("click", load);
 saveButton.addEventListener("click", async () => {
+  if (invalidColorFields.size || saving || !layout) return;
   const savingVersion = changeVersion;
+  saving = true;
   saveButton.disabled = true; reloadButton.disabled = true; report("正在验证并保存…");
   try {
     const result = await api("PUT", { layout, revision }); revision = result.revision; dirty = changeVersion !== savingVersion;
-    saveButton.disabled = !dirty;
-    report(dirty ? "已保存 · 另有刚修改的内容尚未保存" : "已保存到本地 · Git 推送后上线", dirty ? "" : "success");
+    report(invalidColorFields.size ? "已保存 · 请修正新输入的侧栏背景色后再次保存" : dirty ? "已保存 · 另有刚修改的内容尚未保存" : "已保存到本地 · Git 推送后上线", invalidColorFields.size ? "error" : dirty ? "" : "success");
     refreshPreview();
-  } catch (error) { report(error.message, "error"); saveButton.disabled = false; }
-  finally { reloadButton.disabled = false; }
+  } catch (error) { report(error.message, "error"); }
+  finally { saving = false; reloadButton.disabled = false; updateSaveAvailability(); }
 });
 function refreshPreview() {
   frame.src = `${document.body.dataset.previewBase}?editor-preview=${Date.now()}`;

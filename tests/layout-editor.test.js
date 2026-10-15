@@ -44,11 +44,53 @@ test("layout schema accepts the site's layout and rejects unsafe or incomplete d
   }
 });
 
+test("legacy layouts receive solid sidebar colors without weakening required fields or mutating input", () => {
+  const legacy = copy();
+  delete legacy.visual.sidebarCardColorLight;
+  delete legacy.visual.sidebarCardColorDark;
+  const before = structuredClone(legacy);
+  const normalized = validateLayout(legacy);
+  assert.equal(normalized.visual.sidebarCardColorLight, "#ffffff");
+  assert.equal(normalized.visual.sidebarCardColorDark, "#1d2523");
+  assert.deepEqual(legacy, before);
+  normalized.homeModules.reverse();
+  assert.deepEqual(legacy, before);
+  delete legacy.visual.cardOpacity;
+  assert.throws(() => validateLayout(legacy));
+});
+
+test("sidebar backgrounds reject transparent colors and CSS expressions", () => {
+  for (const color of ["transparent", "#fff", "#ffffff88", "rgba(0,0,0,.5)", "var(--card-bg)", "red; background:url(https://example.com)", null]) {
+    for (const key of ["sidebarCardColorLight", "sidebarCardColorDark"]) {
+      const layout = copy(); layout.visual[key] = color;
+      assert.throws(() => validateLayout(layout));
+    }
+  }
+  const layout = copy(); layout.visual.sidebarCardColorLight = "#AbC012";
+  assert.equal(validateLayout(layout).visual.sidebarCardColorLight, "#AbC012");
+});
+
+test("saving a legacy layout persists normalized sidebar colors", async (t) => {
+  const root = await fixture(t);
+  const store = createLayoutStore(root);
+  const { revision } = await store.load();
+  const legacy = copy();
+  delete legacy.visual.sidebarCardColorLight;
+  delete legacy.visual.sidebarCardColorDark;
+  const saved = await store.save(legacy, revision);
+  const persisted = JSON.parse(await readFile(path.join(root, "src/config/layout.json"), "utf8"));
+  assert.equal(persisted.visual.sidebarCardColorLight, "#ffffff");
+  assert.equal(persisted.visual.sidebarCardColorDark, "#1d2523");
+  assert.deepEqual(saved.layout, persisted);
+  assert.deepEqual((await createLayoutStore(root).load()).layout, persisted);
+});
+
 test("saving is atomic, survives a new store, and refuses stale external edits", async (t) => {
   const root = await fixture(t);
   const store = createLayoutStore(root);
   const first = await store.load();
   const updated = copy(); updated.visual.title = "保存后的标题"; updated.homeModules.reverse();
+  updated.visual.sidebarCardColorLight = "#f0f8f5"; updated.visual.sidebarCardColorDark = "#202b26";
   const saved = await store.save(updated, first.revision);
   assert.notEqual(saved.revision, first.revision);
   assert.deepEqual((await createLayoutStore(root).load()).layout, updated);
@@ -172,6 +214,8 @@ test("preview restores hidden home modules, reorders them, and ignores foreign s
   assert.equal(hidden.hidden, false); assert.equal(hidden.style.display, ""); assert.equal(hidden.classList.contains("hidden"), false);
   assert.equal(rootStyles.get("--hue"), String(layout.visual.hue));
   assert.equal(rootStyles.get("--card-transparent-opacity"), String(layout.visual.cardOpacity));
+  assert.equal(rootStyles.get("--sidebar-card-bg-light"), layout.visual.sidebarCardColorLight);
+  assert.equal(rootStyles.get("--sidebar-card-bg-dark"), layout.visual.sidebarCardColorDark);
 });
 
 test("sidebar preview moves desktop widgets without stealing mobile copies and can restore disabled widgets", async () => {

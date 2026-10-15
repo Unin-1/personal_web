@@ -22,6 +22,8 @@ export interface LayoutConfig {
     hue: number;
     pageWidth: number;
     cardOpacity: number;
+    sidebarCardColorLight: string;
+    sidebarCardColorDark: string;
     blur: number;
     postListMode: "list" | "grid";
   };

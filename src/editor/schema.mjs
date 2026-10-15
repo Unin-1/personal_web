@@ -9,10 +9,10 @@ export const SIDEBAR_MODULES = {
   calendar: "日历", siteInfo: "站点信息", sidebarToc: "文章目录",
 };
 
-function object(value, keys, path) {
+function object(value, keys, path, optionalKeys = []) {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error(`${path} 必须是对象`);
   const actual = Object.keys(value);
-  if (actual.some((key) => !keys.includes(key)) || keys.some((key) => !actual.includes(key))) {
+  if (actual.some((key) => !keys.includes(key) && !optionalKeys.includes(key)) || keys.some((key) => !actual.includes(key))) {
     throw new Error(`${path} 字段不完整或包含未知字段`);
   }
 }
@@ -26,6 +26,9 @@ function text(value, max, path) {
 }
 function number(value, min, max, path) {
   if (!Number.isFinite(value) || value < min || value > max) throw new Error(`${path} 必须在 ${min}–${max} 之间`);
+}
+function color(value, path) {
+  if (typeof value !== "string" || !/^#[0-9a-fA-F]{6}$/.test(value)) throw new Error(`${path} 必须为 #RRGGBB 格式的不透明颜色`);
 }
 function image(value, path) {
   text(value, 2048, path);
@@ -66,7 +69,11 @@ export function validateLayout(value) {
   if (!["left", "right", "both"].includes(value.sidebar.position)) throw new Error("侧栏位置无效");
   for (const side of ["left", "right"]) modules(value.sidebar[side], SIDEBAR_MODULES, true, `sidebar.${side}`);
   complete([...value.sidebar.left, ...value.sidebar.right], SIDEBAR_MODULES, "sidebar");
-  object(value.visual, ["wallpaperMode", "desktopImage", "mobileImage", "title", "subtitle", "dimOpacity", "hue", "pageWidth", "cardOpacity", "blur", "postListMode"], "visual");
+  object(value.visual, ["wallpaperMode", "desktopImage", "mobileImage", "title", "subtitle", "dimOpacity", "hue", "pageWidth", "cardOpacity", "blur", "postListMode"], "visual", ["sidebarCardColorLight", "sidebarCardColorDark"]);
+  const sidebarCardColorLight = Object.hasOwn(value.visual, "sidebarCardColorLight") ? value.visual.sidebarCardColorLight : "#ffffff";
+  const sidebarCardColorDark = Object.hasOwn(value.visual, "sidebarCardColorDark") ? value.visual.sidebarCardColorDark : "#1d2523";
+  color(sidebarCardColorLight, "浅色侧栏卡片背景色");
+  color(sidebarCardColorDark, "深色侧栏卡片背景色");
   if (!["banner", "fullscreen", "overlay", "none"].includes(value.visual.wallpaperMode)) throw new Error("壁纸模式无效");
   image(value.visual.desktopImage, "桌面图片");
   image(value.visual.mobileImage, "手机图片");
@@ -78,5 +85,5 @@ export function validateLayout(value) {
   number(value.visual.cardOpacity, 0.3, 1, "卡片不透明度");
   number(value.visual.blur, 0, 30, "背景模糊度");
   if (!["list", "grid"].includes(value.visual.postListMode)) throw new Error("文章默认布局无效");
-  return value;
+  return structuredClone({ ...value, visual: { ...value.visual, sidebarCardColorLight, sidebarCardColorDark } });
 }

@@ -262,3 +262,100 @@ test("作者工作台拖拽、键盘排序、显隐、双尺寸预览及保存�
     expect(await readFile(layoutFile)).toEqual(original);
   }
 });
+
+function hexRgb(hex: string) {
+  return `rgb(${[1, 3, 5].map((offset) => Number.parseInt(hex.slice(offset, offset + 2), 16)).join(", ")})`;
+}
+
+test("侧栏配色在生产站点浅深色、透明壁纸和手机下保持不透明", async ({ page }) => {
+  const config = JSON.parse(await readFile(layoutFile, "utf8"));
+  await visit(page);
+  const profile = page.locator('[data-editor-sidebar="left"] [data-editor-widget="profile"] > .card-base');
+  await expect(profile).toBeVisible();
+  await page.evaluate(() => { document.documentElement.classList.remove("dark"); });
+  await expect(profile).toHaveCSS("background-color", hexRgb(config.visual.sidebarCardColorLight));
+  const sidebarCards = page.locator('[data-editor-sidebar="left"] [data-editor-widget] > .card-base:visible');
+  expect(await sidebarCards.count()).toBeGreaterThan(1);
+  for (const card of await sidebarCards.all()) {
+    await expect(card).toHaveCSS("background-color", hexRgb(config.visual.sidebarCardColorLight));
+    await expect(card).toHaveCSS("display", "block");
+  }
+  await page.evaluate(() => {
+    document.documentElement.style.setProperty("--card-transparent-opacity", "0.35");
+    document.body.classList.add("wallpaper-transparent");
+  });
+  await expect(profile).toHaveCSS("background-color", hexRgb(config.visual.sidebarCardColorLight));
+  const post = page.locator("#post-list-container .card-base").first();
+  await expect(post).toHaveCSS("background-color", /rgba\(.+, 0\.35\)/);
+  await page.evaluate(() => { document.documentElement.classList.add("dark"); });
+  await expect(profile).toHaveCSS("background-color", hexRgb(config.visual.sidebarCardColorDark));
+  await page.evaluate(() => { document.body.classList.remove("wallpaper-transparent"); });
+  await expect(profile).toHaveCSS("background-color", hexRgb(config.visual.sidebarCardColorDark));
+  await page.setViewportSize({ width: 390, height: 844 });
+  const mobileProfile = page.locator('[data-editor-sidebar="bottom"] [data-editor-widget="profile"] > .card-base');
+  await expect(mobileProfile).toBeVisible();
+  await expect(mobileProfile).toHaveCSS("background-color", hexRgb(config.visual.sidebarCardColorDark));
+});
+
+test("作者工作台侧栏配色即时预览、校验和保存后重载", async ({ page }) => {
+  const original = await readFile(layoutFile);
+  page.on("dialog", (dialog) => dialog.accept());
+  try {
+    await page.goto(editor);
+    await expect(page.locator("#status")).toHaveText("已载入本地配置");
+    const preview = page.frameLocator("#preview");
+    const profile = preview.locator('[data-editor-sidebar="left"] [data-editor-widget="profile"] > .card-base');
+    await expect(profile).toBeVisible();
+    await preview.locator("html").evaluate((element) => element.classList.remove("dark"));
+    const light = page.locator('[data-config="visual.sidebarCardColorLight"]');
+    const dark = page.locator('[data-config="visual.sidebarCardColorDark"]');
+    const picker = page.locator('[data-color-picker="sidebarCardColorLight"]');
+    const save = page.getByRole("button", { name: "保存到本地", exact: true });
+    await light.fill("#f2f7f4");
+    await expect(picker).toHaveValue("#f2f7f4");
+    await expect(profile).toHaveCSS("background-color", "rgb(242, 247, 244)");
+    await light.fill("#zzzzzz");
+    await expect(page.locator("#sidebar-card-color-light-error")).toContainText("请输入 #RRGGBB");
+    await expect(save).toBeDisabled();
+    await expect(profile).toHaveCSS("background-color", "rgb(242, 247, 244)");
+    await page.locator('[data-config="visual.title"]').fill("配色保存验证");
+    await expect(save).toBeDisabled();
+    await picker.evaluate((element) => {
+      (element as HTMLInputElement).value = "#e9f5ee";
+      element.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    await expect(light).toHaveValue("#e9f5ee");
+    await expect(save).toBeEnabled();
+    await expect(profile).toHaveCSS("background-color", "rgb(233, 245, 238)");
+    await dark.fill("#24332b");
+    await preview.locator("html").evaluate((element) => element.classList.add("dark"));
+    await expect(profile).toHaveCSS("background-color", "rgb(36, 51, 43)");
+    await page.getByRole("button", { name: "手机", exact: true }).click();
+    await expect(preview.locator('[data-editor-sidebar="bottom"] [data-editor-widget="profile"] > .card-base')).toHaveCSS("background-color", "rgb(36, 51, 43)");
+    await page.getByRole("button", { name: "桌面", exact: true }).click();
+    await save.click();
+    await expect(page.locator("#status")).toHaveText("已保存到本地 · Git 推送后上线");
+    const persisted = JSON.parse(await readFile(layoutFile, "utf8"));
+    expect(persisted.visual.sidebarCardColorLight).toBe("#e9f5ee");
+    expect(persisted.visual.sidebarCardColorDark).toBe("#24332b");
+    await page.reload();
+    await expect(page.locator("#status")).toHaveText("已载入本地配置");
+    await expect(light).toHaveValue("#e9f5ee");
+    await expect(dark).toHaveValue("#24332b");
+    await preview.locator("html").evaluate((element) => element.classList.remove("dark"));
+    await expect(profile).toHaveCSS("background-color", "rgb(233, 245, 238)");
+    await profile.scrollIntoViewIfNeeded();
+    await light.scrollIntoViewIfNeeded();
+    await expect(preview.locator("#left-sidebar")).toHaveCSS("opacity", "1");
+    await expect(profile).toHaveCSS("opacity", "1");
+    for (const card of await preview.locator('[data-editor-sidebar="left"] [data-editor-widget]:visible > .card-base').all()) {
+      await expect(card).toHaveCSS("display", "block");
+      await expect(card).toHaveCSS("opacity", "1");
+    }
+    await mkdir(path.join(cacheDirectory, "sidebar-colors"), { recursive: true });
+    await page.screenshot({ path: path.join(cacheDirectory, "sidebar-colors", "editor-colors.png") });
+  } finally {
+    await writeFile(layoutFile, original);
+    expect(await readFile(layoutFile)).toEqual(original);
+  }
+});

@@ -28,12 +28,12 @@ export function createLayoutStore(rootDirectory) {
   }
   function save(layout, expectedRevision) {
     const operation = async () => {
-      validateLayout(layout);
+      const normalizedLayout = validateLayout(layout);
       const current = await load();
       if (typeof expectedRevision !== "string" || expectedRevision !== current.revision) {
         throw new EditorError(409, "配置已被其他编辑器修改。请先重新载入，再应用你的更改。");
       }
-      const content = `${JSON.stringify(layout, null, 2)}\n`;
+      const content = `${JSON.stringify(normalizedLayout, null, 2)}\n`;
       const temporary = `${file}.${randomBytes(12).toString("hex")}.tmp`;
       try {
         await writeFile(temporary, content, { flag: "wx", mode: 0o600 });
@@ -46,7 +46,7 @@ export function createLayoutStore(rootDirectory) {
       } finally {
         await unlink(temporary).catch((error) => { if (error.code !== "ENOENT") console.error("清理布局临时文件失败", error.message); });
       }
-      return { layout, revision: revision(content) };
+      return { layout: normalizedLayout, revision: revision(content) };
     };
     const result = queue.then(operation, operation);
     queue = result.catch(() => {});
