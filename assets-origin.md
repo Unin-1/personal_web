@@ -28,3 +28,7 @@ Lighting/mood: luminous gentle summer daylight, peaceful, welcoming, optimistic.
 Color palette: soft sky blue, mint green accents, white clouds, light teal sea, natural warm neutral rooftops.
 Constraints: original environment only, no people or character closeups, no text, no lettering, no logos, no signature, no watermark, no UI, no borders. Opaque background.
 ```
+
+## 界面预览图
+
+`docs/previews/home-desktop.webp` 与 `layout-editor.webp` 来自本项目 Playwright 验收截图，经 sharp 以 WebP 质量 80 压缩；仅展示项目自有界面和上述原创壁纸，分别为 98,144 与 96,284 bytes。

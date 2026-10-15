@@ -2,6 +2,10 @@
 
 基于 Astro / Firefly 的二次元个人博客：Markdown 与数学公式、标签筛选、相册、GitHub 项目、友链、Bilibili 追番、本地与 Meting 音乐，以及仅在本机运行的布局工作台。
 
+![首页桌面预览](docs/previews/home-desktop.webp)
+
+![本地布局工作台预览](docs/previews/layout-editor.webp)
+
 ## 开始使用
 
 使用 Node.js 24（版本见 `.node-version`）和 pnpm 11。

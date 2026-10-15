@@ -28,7 +28,7 @@
 
 `npm test` 使用 Node 内置测试运行器，覆盖本地写入权限、配置冲突、保存恢复、跨栏预览、缓存隔离和同步失败，以及音乐单例和手动播放。
 
-`npm run check` 执行 Astro/TypeScript 诊断。`npm run lint` 检查本项目新增功能代码，保留导入主题的现有组织。`npm run test:e2e` 使用 Playwright 检查生产与作者工作台，包括桌面、手机、标签、公式、灯箱、项目、空态和管理入口隔离。截图和诊断存于 `.cache/`、`test-results/`，不提交。
+`npm run check` 执行 Astro/TypeScript 诊断。`npm run lint` 检查本项目新增功能代码，保留导入主题的现有组织。`npm run test:e2e` 使用 Playwright 检查生产与作者工作台，包括桌面、手机、标签、公式、灯箱、项目、空态和管理入口隔离。测试原始截图和诊断存于 `.cache/`、`test-results/`，不提交；`docs/previews/` 保留经检查、压缩的界面示意图，供 README 和 PR 展示。
 
 ## 上游维护
 
