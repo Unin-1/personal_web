@@ -62,7 +62,7 @@ test("首页、桌面与手机导航及代表视口截图", async ({ page }) => 
   await expect(page).toHaveTitle(/Unin/);
   await expect(page.locator('[data-home-module="posts"]')).toBeVisible();
   await expect(page.locator('[data-home-module="projects"]')).toBeVisible();
-  await expectLoadedImage(page, 'img[src*="summer-sky"]');
+  await expectLoadedImage(page, '#banner-images-container .slide-item.active img:visible');
   const invalidLocalLinks = await page.locator('a[href^="/"]').evaluateAll((links) => links
     .map((link) => link.getAttribute("href"))
     .filter((href) => href && !href.startsWith("/personal_web/") && !href.startsWith("//")));
@@ -74,7 +74,7 @@ test("首页、桌面与手机导航及代表视口截图", async ({ page }) => 
 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.reload();
-  await expectLoadedImage(page, 'img[src*="summer-sky"]');
+  await expectLoadedImage(page, '#banner-images-container .slide-item.active img:visible');
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
   await page.screenshot({ path: path.join(screenshotDirectory, "home-mobile.png") });
   await page.locator("#nav-menu-switch").click();

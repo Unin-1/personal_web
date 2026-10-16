@@ -69,7 +69,7 @@ export function validateLayout(value) {
   if (!["left", "right", "both"].includes(value.sidebar.position)) throw new Error("侧栏位置无效");
   for (const side of ["left", "right"]) modules(value.sidebar[side], SIDEBAR_MODULES, true, `sidebar.${side}`);
   complete([...value.sidebar.left, ...value.sidebar.right], SIDEBAR_MODULES, "sidebar");
-  object(value.visual, ["wallpaperMode", "desktopImage", "mobileImage", "title", "subtitle", "dimOpacity", "hue", "pageWidth", "cardOpacity", "blur", "postListMode"], "visual", ["sidebarCardColorLight", "sidebarCardColorDark"]);
+  object(value.visual, ["wallpaperMode", "desktopImage", "mobileImage", "title", "subtitle", "dimOpacity", "hue", "pageWidth", "cardOpacity", "blur", "postListMode"], "visual", ["sidebarCardColorLight", "sidebarCardColorDark", "desktopImages", "mobileImages", "carouselEnabled", "carouselInterval", "carouselEffect"]);
   const sidebarCardColorLight = Object.hasOwn(value.visual, "sidebarCardColorLight") ? value.visual.sidebarCardColorLight : "#ffffff";
   const sidebarCardColorDark = Object.hasOwn(value.visual, "sidebarCardColorDark") ? value.visual.sidebarCardColorDark : "#1d2523";
   color(sidebarCardColorLight, "浅色侧栏卡片背景色");
@@ -77,6 +77,20 @@ export function validateLayout(value) {
   if (!["banner", "fullscreen", "overlay", "none"].includes(value.visual.wallpaperMode)) throw new Error("壁纸模式无效");
   image(value.visual.desktopImage, "桌面图片");
   image(value.visual.mobileImage, "手机图片");
+  const desktopImages = Object.hasOwn(value.visual, "desktopImages") ? value.visual.desktopImages : [];
+  const mobileImages = Object.hasOwn(value.visual, "mobileImages") ? value.visual.mobileImages : [];
+  for (const [name, images] of [["桌面轮换列表", desktopImages], ["手机轮换列表", mobileImages]]) {
+    if (!Array.isArray(images) || images.length > 20) throw new Error(`${name} 必须是最多 20 张图片的数组`);
+    for (const source of images) image(source, name);
+    if (new Set(images).size !== images.length) throw new Error(`${name} 不能包含重复图片`);
+  }
+  const carouselEnabled = Object.hasOwn(value.visual, "carouselEnabled") ? value.visual.carouselEnabled : false;
+  const carouselInterval = Object.hasOwn(value.visual, "carouselInterval") ? value.visual.carouselInterval : 5000;
+  const carouselEffect = Object.hasOwn(value.visual, "carouselEffect") ? value.visual.carouselEffect : "fade";
+  boolean(carouselEnabled, "自动轮换");
+  number(carouselInterval, 3000, 600000, "轮换间隔（毫秒）");
+  if (!Number.isInteger(carouselInterval)) throw new Error("轮换间隔必须为整数毫秒");
+  if (!["fade", "slide", "kenburns"].includes(carouselEffect)) throw new Error("壁纸过渡效果无效");
   text(value.visual.title, 100, "主标题");
   text(value.visual.subtitle, 250, "副标题");
   number(value.visual.dimOpacity, 0, 1, "遮罩暗度");
@@ -85,5 +99,5 @@ export function validateLayout(value) {
   number(value.visual.cardOpacity, 0.3, 1, "卡片不透明度");
   number(value.visual.blur, 0, 30, "背景模糊度");
   if (!["list", "grid"].includes(value.visual.postListMode)) throw new Error("文章默认布局无效");
-  return structuredClone({ ...value, visual: { ...value.visual, sidebarCardColorLight, sidebarCardColorDark } });
+  return structuredClone({ ...value, visual: { ...value.visual, sidebarCardColorLight, sidebarCardColorDark, desktopImages, mobileImages, carouselEnabled, carouselInterval, carouselEffect } });
 }

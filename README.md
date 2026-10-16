@@ -49,13 +49,20 @@ npm run test:e2e   # 生产预览＋本地编辑器的 Playwright 验收
 | 音乐来源 | `src/config/musicConfig.ts` |
 | GitHub 精选仓库、B站 UID 和个人观看记录 | `config/external-sources.json` |
 
-详细示例见 [内容维护指南](docs/content-guide.md)，架构与发布说明见 [架构与部署](docs/architecture.md)。
+维护文档从以下入口阅读：
+
+- [博客操作手册](docs/content-guide.md)：从启动、工作台每个控件，到文章、项目、相册、追番、音乐与发布的具体操作和排错。
+- [完整配置参数字典](docs/configuration-reference.md)：逐文件列出字段用途、类型、可选值、单位、优先级、生效方式与示例。
+- [高级与可选功能](docs/advanced-configuration.md)：评论、统计、字体、代码和图表、特效、看板娘、动态、书签、其他媒体列表、打赏的接入说明。
+- [架构与部署](docs/architecture.md)：本地作者工具隔离、快照、GitHub Pages 路径与发布流程。
+
+布局和壁纸优先在作者工作台或 `src/config/layout.json` 修改；它会覆盖静态配置中的对应默认值。背景支持独立桌面／手机多图、定时轮换和过渡，四种壁纸模式的实际区别见操作手册。
 
 ## 发布
 
 目标地址为 `https://unin-1.github.io/personal_web/`。在仓库 **Settings → Pages → Source** 选择 **GitHub Actions**。工作流会验证推送到 `codex/**` 的分支；合入 `main` 后验证并部署，也支持手动触发和每日北京时间 06:00 更新外部数据。
 
-站点默认没有配置 Bilibili UID 和音乐歌单，页面会显示空态。填写后构建即可启用。第三方数据同步失败会保留此前的成功快照，首次失败不会伪造数据。
+Bilibili UID 或音乐来源未配置时显示空态；按手册填写后重新构建即可使用。第三方数据同步失败会保留此前的成功快照，首次失败不会伪造数据。
 
 ## 来源
 

@@ -1,80 +1,34 @@
-# 配置文件说明
+# 配置入口
 
-本目录包含 Firefly 主题的所有配置文件，采用模块化设计，每个文件负责特定的功能模块。
+本目录保存网站配置，详细操作与逐字段说明统一维护在：
 
-## 📁 配置文件结构
+- [博客操作手册](../../docs/content-guide.md)：从零启动、工作台每个控件、所有常用内容、发布及排错。
+- [完整配置参数字典](../../docs/configuration-reference.md)：每个字段的类型、值域、单位、用途、优先级和示例。
+- [高级与可选功能](../../docs/advanced-configuration.md)：评论、统计、字体、特效、看板娘、图表与可选页面。
 
-```
-src/config/
-├── index.ts                  # 配置索引文件 - 统一导出
-├── siteConfig.ts             # 站点基础配置
-├── analyticsConfig.ts        # 统计分析配置（Google Analytics、Umami、51la 等）
-├── announcementConfig.ts     # 公告配置
-├── backgroundWallpaper.ts    # 背景壁纸配置
-├── commentConfig.ts          # 评论系统配置
-├── coverImageConfig.ts       # 封面图配置
-├── displaySettingsConfig.ts  # 设置面板配置
-├── dynamicConfig.ts          # 动态页面配置
-├── effectsConfig.ts          # 动画特效配置（樱花等）
-├── expressiveCodeConfig.ts   # 代码高亮配置
-├── fontConfig.ts             # 字体配置
-├── friendsConfig.ts          # 友链配置
-├── galleryConfig.ts          # 相册配置
-├── licenseConfig.ts          # 许可证配置
-├── musicConfig.ts            # 音乐播放器配置
-├── navBarConfig.ts           # 导航栏配置（含 LinkPresets 链接预设）
-├── pioConfig.ts              # 看板娘配置（Spine、Live2D）
-├── mermaidConfig.ts          # Mermaid 图表配置
-├── plantumlConfig.ts         # PlantUML 图表配置
-├── profileConfig.ts          # 用户资料配置
-├── sidebarConfig.ts          # 侧边栏布局配置
-├── sponsorConfig.ts          # 打赏配置
-└── README.md                 # 本文件
-```
+## 先选对文件
 
-## 🚀 使用方式
+| 文件 | 修改内容 |
+| --- | --- |
+| `layout.json` | 首页模块、左右侧栏、壁纸模式／图片／轮换、页面宽度、色相、卡片背景等；也可用 `npm run edit` |
+| `siteConfig.ts` | SEO、页面开关、导航外形、文章显示和阅读行为 |
+| `profileConfig.ts` | 头像、姓名、简介、联系方式 |
+| `navBarConfig.ts` | 菜单分组、顺序、链接、搜索方式 |
+| `announcementConfig.ts`、`FooterConfig.html` | 公告、额外页脚HTML |
+| `galleryConfig.ts`、`friendsConfig.ts` | 相册、照片说明、友链 |
+| `musicConfig.ts` | 本地音乐／Meting、播放器显示 |
+| `../content/` | 文章、项目、关于／友链说明等正文 |
+| `../../config/external-sources.json` | GitHub公开仓库、B站UID、个人观看进度 |
+| 其他 `*Config.ts` | 可选功能，详见高级配置 |
 
-### 推荐：使用配置索引（统一导入）
-```typescript
-import { siteConfig, profileConfig } from "@/config";
-```
+## 覆盖与生效
 
-### 直接导入单个配置
-```typescript
-import { siteConfig } from "@/config/siteConfig";
-import { profileConfig } from "@/config/profileConfig";
-```
+`layout.json` 是作者布局的唯一数据源。`siteRuntimeConfig.ts`、`sidebarConfig.ts`、`backgroundWallpaper.ts` 把它映射到页面；色相、宽度、文章默认布局以及壁纸相关映射值不要只在 `siteConfig.ts`／适配器里改静态默认。改错位置会看不到变化。
 
-## 📋 配置文件列表
+各配置有固定导入入口，复制一个不同名字的文件不会自动替换配置。类型文件在 `src/types/`，改类型本身不会改页面。
 
-| 文件 | 说明 |
-|------|------|
-| `siteConfig.ts` | 站点基础配置（标题、描述、主题色、页面宽度、文章内容页配置等） |
-| `analyticsConfig.ts` | 统计分析配置（Google Analytics、Microsoft Clarity、Umami、51la） |
-| `announcementConfig.ts` | 公告配置（标题、内容、类型、链接等） |
-| `backgroundWallpaper.ts` | 背景壁纸配置（壁纸模式、图片、横幅文字、水波纹等） |
-| `commentConfig.ts` | 评论系统配置（Twikoo、Waline、Artalk、Giscus、Disqus） |
-| `coverImageConfig.ts` | 封面图配置（文章封面图、随机封面图 API） |
-| `displaySettingsConfig.ts` | 视图设置面板配置（面板总开关、各设置项开关） |
-| `dynamicConfig.ts` | 动态页面配置（页面标题、描述、评论开关和每页显示数量） |
-| `effectsConfig.ts` | 动画特效配置（樱花数量、速度、尺寸等） |
-| `expressiveCodeConfig.ts` | 代码高亮配置（亮色/暗色主题、折叠、语言徽章） |
-| `fontConfig.ts` | 字体配置（字体列表、回退、预加载） |
-| `friendsConfig.ts` | 友链配置（友链列表、页面设置） |
-| `galleryConfig.ts` | 相册配置（相册列表、瀑布流列宽） |
-| `licenseConfig.ts` | 许可证配置（CC 协议等） |
-| `musicConfig.ts` | 音乐播放器配置（Meting API / 本地音乐、导航栏和侧边栏开关） |
-| `navBarConfig.ts` | 导航栏配置（动态链接、LinkPresets 链接预设、搜索配置） |
-| `pioConfig.ts` | 看板娘配置（Spine 模型、Live2D 模型） |
-| `plantumlConfig.ts` | PlantUML 图表渲染配置 |
-| `profileConfig.ts` | 用户资料配置（头像、姓名、社交链接） |
-| `sidebarConfig.ts` | 侧边栏布局配置（左侧/右侧/移动端组件列表） |
-| `sponsorConfig.ts` | 打赏配置（打赏方式、打赏者列表） |
+页面统一入口使用 `import { siteConfig, profileConfig } from "@/config"`；这会得到已合并layout的运行时配置。Astro构建工具有意读取不依赖layout的静态siteConfig，防止工作台保存导致开发服务器反复重启；维护普通配置不需要改这些导入。
 
-## 📝 说明
+工作台保存只写本地JSON；Markdown、一般配置在开发环境通常热更新，字体／代码渲染／图表插件与环境变量修改需要重启。生产站所有修改都需重新构建并部署。访客浏览器已有偏好可能覆盖站点默认，用无痕窗口检查。
 
-- 所有配置文件均可通过 `index.ts` 统一导入
-- 每个配置文件对应 `types/` 目录下的独立类型定义文件
-- `siteConfig.ts` 只保留站点核心信息，不聚合其他模块配置
-- `navBarConfig.ts` 底部的 `LinkPresets` 可自由自定义导航栏链接的名称、图标和 URL
-- `displaySettingsConfig.ts` 的视图设置面板默认关闭，除了修改配置里的 `enable`，也可以在部署平台（Vercel / Cloudflare 等）设置环境变量 `PUBLIC_DISPLAY_SETTINGS=true` 开启，无需改动配置文件；环境变量优先级更高，取值 `true/1/on/yes` 开启、`false/0/off/no` 关闭
+`PUBLIC_DISPLAY_SETTINGS` 优先覆盖访客面板总开关，`PUBLIC_PAGES_<KEY>` 覆盖页面开关，`PUBLIC_SITE_LANG` 覆盖语言；完整取值见参数字典。工作台与访客面板独立，未开启的可选功能也不会因为存在配置文件就自动启用。

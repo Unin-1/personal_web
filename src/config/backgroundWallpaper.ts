@@ -6,7 +6,10 @@ const visual = layoutConfig.visual;
 export const backgroundWallpaper: BackgroundWallpaperConfig = {
   mode: visual.wallpaperMode,
   playerEnable: false,
-  src: { desktop: visual.desktopImage, mobile: visual.mobileImage },
+  src: {
+    desktop: visual.desktopImages.length ? visual.desktopImages : visual.desktopImage,
+    mobile: visual.mobileImages.length ? visual.mobileImages : visual.mobileImage,
+  },
   common: {
     dimOpacity: visual.dimOpacity,
     homeText: {
@@ -22,7 +25,7 @@ export const backgroundWallpaper: BackgroundWallpaperConfig = {
         { name: "RSS", icon: "fa7-solid:rss", url: "/rss/", showName: true },
       ],
     },
-    carousel: { enable: false, interval: 5000, transitionEffect: "fade" },
+    carousel: { enable: visual.carouselEnabled, interval: visual.carouselInterval, transitionEffect: visual.carouselEffect },
     waves: { enable: { desktop: false, mobile: false } },
     gradient: { enable: { desktop: true, mobile: true }, height: "20%" },
   },

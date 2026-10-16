@@ -159,6 +159,15 @@
     opacity: 1;
     animation-play-state: running;
 }
+#banner-images-container[data-carousel-playing="false"] .slide-item {
+    animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+    #banner-images-container .slide-item {
+        animation: none;
+        transition: none;
+    }
+}
 
 /* 当banner被禁用时的布局样式 */
 

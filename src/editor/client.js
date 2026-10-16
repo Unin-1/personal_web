@@ -15,6 +15,7 @@ let changeVersion = 0;
 let previewSize = "desktop";
 let saving = false;
 const invalidColorFields = new Set();
+const invalidWallpaperFields = new Set();
 
 function report(message, kind = "") { status.textContent = message; status.dataset.kind = kind; }
 async function api(method, body) {
@@ -27,7 +28,7 @@ function preview() {
   if (layout) frame.contentWindow?.postMessage({ type: "unin-layout-draft", layout, base: document.body.dataset.previewBase }, location.origin);
 }
 function updateSaveAvailability() {
-  saveButton.disabled = !dirty || saving || invalidColorFields.size > 0;
+  saveButton.disabled = !dirty || saving || invalidColorFields.size > 0 || invalidWallpaperFields.size > 0;
 }
 function colorFeedback(field, valid) {
   const key = field.dataset.colorHex;
@@ -40,7 +41,7 @@ function colorFeedback(field, valid) {
 function changed() {
   dirty = true;
   changeVersion++;
-  report(invalidColorFields.size ? "请修正侧栏背景色后保存 · 预览保留上次有效颜色" : "有未保存更改 · 预览已更新", invalidColorFields.size ? "error" : "");
+  report(invalidWallpaperFields.size ? "请修正壁纸列表或轮换间隔后保存 · 预览保留上次有效值" : invalidColorFields.size ? "请修正侧栏背景色后保存 · 预览保留上次有效颜色" : "有未保存更改 · 预览已更新", invalidColorFields.size || invalidWallpaperFields.size ? "error" : "");
   updateSaveAvailability();
   preview();
 }
@@ -118,11 +119,22 @@ for (const list of document.querySelectorAll("[data-list]")) {
 }
 function updateOutputs() {
   for (const field of ["hue", "dimOpacity", "pageWidth", "cardOpacity", "blur"]) document.querySelector(`#${field}-output`).textContent = layout.visual[field];
+  const count = (device) => layout.visual[`${device}Images`]?.length || 1;
+  const visual = layout.visual;
+  document.querySelector("#carousel-hint").textContent = visual.wallpaperMode === "none" ? "纯色模式隐藏壁纸并暂停轮换。" : !visual.carouselEnabled ? "自动轮换已关闭，显示各设备列表第一张；列表为空时显示备用单图。" : `桌面 ${count("desktop")} 张 · 手机 ${count("mobile")} 张 · 每 ${visual.carouselInterval / 1000} 秒轮换。仅 1 张的设备保持静态；标签页在后台或系统开启减少动态时暂停。`;
 }
 for (const field of document.querySelectorAll("[data-config]")) {
   field.addEventListener("input", () => {
     if (!layout) return;
     const [group, key] = field.dataset.config.split(".");
+    if (field.hasAttribute("data-image-list") || field.hasAttribute("data-seconds")) {
+      const value = field.hasAttribute("data-image-list") ? field.value.split(/\r?\n/).map((source) => source.trim()).filter(Boolean) : Number(field.value) * 1000;
+      const valid = Array.isArray(value) ? value.length <= 20 && new Set(value).size === value.length : field.value.trim() !== "" && Number.isInteger(Number(field.value)) && value >= 3000 && value <= 600000;
+      field.setCustomValidity(valid ? "" : Array.isArray(value) ? "最多填写 20 张图片且不可重复，每行一张。" : "请填写 3–600 秒的整数。 ");
+      field.setAttribute("aria-invalid", String(!valid));
+      if (valid) { invalidWallpaperFields.delete(key); layout[group][key] = value; } else invalidWallpaperFields.add(key);
+      updateOutputs(); changed(); return;
+    }
     if (field.dataset.colorHex) {
       const valid = /^#[0-9a-fA-F]{6}$/.test(field.value);
       colorFeedback(field, valid);
@@ -150,9 +162,14 @@ async function load() {
   try {
     const result = await api("GET"); layout = result.layout; revision = result.revision; dirty = false;
     invalidColorFields.clear();
+    invalidWallpaperFields.clear();
     for (const field of document.querySelectorAll("[data-config]")) {
       const [group, key] = field.dataset.config.split(".");
-      if (field.type === "checkbox") field.checked = layout[group][key]; else field.value = layout[group][key];
+      if (field.type === "checkbox") field.checked = layout[group][key];
+      else if (field.hasAttribute("data-image-list")) field.value = layout[group][key].join("\n");
+      else if (field.hasAttribute("data-seconds")) field.value = layout[group][key] / 1000;
+      else field.value = layout[group][key];
+      if (field.hasAttribute("data-image-list") || field.hasAttribute("data-seconds")) { field.setCustomValidity(""); field.setAttribute("aria-invalid", "false"); }
       if (field.dataset.colorHex) {
         colorFeedback(field, true);
         document.querySelector(`[data-color-picker="${key}"]`).value = field.value;
@@ -165,13 +182,13 @@ async function load() {
 }
 reloadButton.addEventListener("click", load);
 saveButton.addEventListener("click", async () => {
-  if (invalidColorFields.size || saving || !layout) return;
+  if (invalidColorFields.size || invalidWallpaperFields.size || saving || !layout) return;
   const savingVersion = changeVersion;
   saving = true;
   saveButton.disabled = true; reloadButton.disabled = true; report("正在验证并保存…");
   try {
     const result = await api("PUT", { layout, revision }); revision = result.revision; dirty = changeVersion !== savingVersion;
-    report(invalidColorFields.size ? "已保存 · 请修正新输入的侧栏背景色后再次保存" : dirty ? "已保存 · 另有刚修改的内容尚未保存" : "已保存到本地 · Git 推送后上线", invalidColorFields.size ? "error" : dirty ? "" : "success");
+    report(invalidWallpaperFields.size ? "已保存 · 请修正新输入的壁纸列表或轮换间隔" : invalidColorFields.size ? "已保存 · 请修正新输入的侧栏背景色后再次保存" : dirty ? "已保存 · 另有刚修改的内容尚未保存" : "已保存到本地 · Git 推送后上线", invalidColorFields.size || invalidWallpaperFields.size ? "error" : dirty ? "" : "success");
     refreshPreview();
   } catch (error) { report(error.message, "error"); }
   finally { saving = false; reloadButton.disabled = false; updateSaveAvailability(); }

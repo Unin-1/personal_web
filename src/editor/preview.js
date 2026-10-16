@@ -3,10 +3,30 @@
   if (window.parent === window || !new URLSearchParams(location.search).has("editor-preview")) return;
   let draft;
   let base = "/";
-  const imageUrl = (source) => source?.startsWith("assets/") ? `${base}src/${source}` : source?.startsWith("/") ? `${base}${source.slice(1)}` : source;
+  const imageUrl = (source) => /^(assets|images)\//.test(source) ? `${base}src/${source}` : source?.startsWith("/") ? `${base}${source.slice(1)}` : source;
   function apply() {
     if (!draft) return;
     const { visual, homeModules, sidebar } = draft;
+    const root = document.documentElement;
+    const previousMode = root.dataset.wallpaperMode;
+    root.dataset.wallpaperMode = visual.wallpaperMode;
+    root.toggleAttribute("data-has-wallpaper", visual.wallpaperMode !== "none");
+    document.body.classList.toggle("wallpaper-transparent", ["overlay", "fullscreen"].includes(visual.wallpaperMode));
+    document.body.classList.toggle("enable-banner", visual.wallpaperMode === "banner");
+    const wallpaper = document.getElementById("wallpaper-wrapper");
+    if (wallpaper) {
+      wallpaper.classList.remove("wallpaper-overlay", "wallpaper-fullscreen");
+      wallpaper.style.setProperty("--overlay-blur", `${visual.blur}px`);
+      wallpaper.style.removeProperty("display");
+      wallpaper.style.removeProperty("height");
+      wallpaper.style.removeProperty("top");
+    }
+    const homeText = document.querySelector(".banner-home-text-overlay");
+    if (homeText) homeText.classList.toggle("hidden", !document.body.classList.contains("is-home") || !["banner", "fullscreen"].includes(visual.wallpaperMode));
+    if (previousMode !== visual.wallpaperMode) {
+      window.scrollTo({ top: 0, behavior: "instant" });
+      window.dispatchEvent(new CustomEvent("wallpaperModeChange", { detail: { mode: visual.wallpaperMode } }));
+    }
     document.documentElement.style.setProperty("--hue", String(visual.hue));
     document.documentElement.style.setProperty("--page-width", `${visual.pageWidth}rem`);
     document.documentElement.style.setProperty("--card-transparent-opacity", String(visual.cardOpacity));
@@ -26,10 +46,11 @@
     const subtitle = document.querySelector("#banner-subtitle, .banner-subtitle, [data-banner-subtitle]");
     if (title) title.textContent = visual.title;
     if (subtitle) subtitle.textContent = visual.subtitle;
-    const background = imageUrl(window.innerWidth < 768 ? visual.mobileImage : visual.desktopImage);
-    for (const image of document.querySelectorAll("#wallpaper-wrapper img, #banner img, #banner-wrapper img, #wallpaper-container img")) {
-      if (background) { image.removeAttribute("srcset"); image.src = background; }
-    }
+    const sources = (device) => (visual[`${device}Images`]?.length ? visual[`${device}Images`] : [visual[`${device}Image`]]).map(imageUrl);
+    window.dispatchEvent(new CustomEvent("unin-wallpaper-config", { detail: {
+      desktop: sources("desktop"), mobile: sources("mobile"), enabled: visual.carouselEnabled ?? false,
+      interval: visual.carouselInterval ?? 5000, effect: visual.carouselEffect ?? "fade",
+    } }));
     for (const dim of document.querySelectorAll(".banner-dim-overlay")) dim.style.background = `rgba(0, 0, 0, ${visual.dimOpacity})`;
     const posts = document.querySelector("#post-list-container");
     if (posts) {
@@ -95,6 +116,7 @@
     if (draft?.version === 1 && Array.isArray(draft.homeModules) && draft.visual && draft.sidebar) apply();
   });
   window.addEventListener("resize", apply);
+  window.addEventListener("unin-wallpaper-ready", apply);
   document.addEventListener("astro:page-load", apply);
   const ready = () => window.parent.postMessage({ type: "unin-preview-ready" }, location.origin);
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", ready, { once: true }); else ready();

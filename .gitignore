@@ -63,3 +63,8 @@ test-results/
 *.tmp
 .env.*
 !.env.example
+
+# local configuration backups
+*.bak
+*.backup
+/src/config/* copy.ts

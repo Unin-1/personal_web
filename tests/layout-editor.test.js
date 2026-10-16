@@ -12,6 +12,19 @@ import localLayoutEditor from "../src/editor/integration.mjs";
 const original = JSON.parse(await readFile(new URL("../src/config/layout.json", import.meta.url), "utf8"));
 const copy = () => structuredClone(original);
 
+function addPreviewEnvironment(document, window) {
+  document.documentElement.dataset = {};
+  document.documentElement.toggleAttribute = () => {};
+  const classes = new Set(["is-home"]);
+  document.body = { classList: {
+    toggle(name, enabled) { if (enabled) classes.add(name); else classes.delete(name); },
+    contains(name) { return classes.has(name); },
+  } };
+  document.getElementById = () => null;
+  window.scrollTo = () => {};
+  window.dispatchEvent = () => true;
+}
+
 async function fixture(t) {
   const root = await mkdtemp(path.join(os.tmpdir(), "unin-layout-test-"));
   await mkdir(path.join(root, "src/config"), { recursive: true });
@@ -199,7 +212,8 @@ test("preview restores hidden home modules, reorders them, and ignores foreign s
     querySelector(selector) { const match = /^\[data-home-module="([a-z]+)"\]$/.exec(selector); return match ? elements.get(match[1]) : null; },
     querySelectorAll() { return []; }, addEventListener() {} };
   const window = { parent, innerWidth: 1280, addEventListener(name, callback) { listeners.set(name, callback); } };
-  vm.runInNewContext(await readFile(new URL("../src/editor/preview.js", import.meta.url), "utf8"), { window, document, location: { origin: "http://127.0.0.1:4321", search: "?editor-preview=1" }, URLSearchParams });
+  addPreviewEnvironment(document, window);
+  vm.runInNewContext(await readFile(new URL("../src/editor/preview.js", import.meta.url), "utf8"), { window, document, location: { origin: "http://127.0.0.1:4321", search: "?editor-preview=1" }, URLSearchParams, CustomEvent });
   const layout = copy(); layout.homeModules.reverse(); layout.homeModules[0].enabled = false;
   const event = { origin: "http://127.0.0.1:4321", source: parent, data: { type: "unin-layout-draft", layout, base: "/personal_web/" } };
   listeners.get("message")({ ...event, origin: "https://evil.example" });
@@ -247,7 +261,8 @@ test("sidebar preview moves desktop widgets without stealing mobile copies and c
   const document = { readyState: "complete", documentElement: { style: { setProperty() {} } }, querySelector(selector) { return selectors.get(selector) || null; }, querySelectorAll() { return []; }, addEventListener() {} };
   const window = { parent, innerWidth: 1280, addEventListener(name, callback) { callbacks.set(name, callback); } };
   const location = { origin: "http://127.0.0.1:4321", search: "?editor-preview=1", pathname: "/personal_web/" };
-  vm.runInNewContext(await readFile(new URL("../src/editor/preview.js", import.meta.url), "utf8"), { window, document, location, URLSearchParams });
+  addPreviewEnvironment(document, window);
+  vm.runInNewContext(await readFile(new URL("../src/editor/preview.js", import.meta.url), "utf8"), { window, document, location, URLSearchParams, CustomEvent });
   const layout = copy(); layout.sidebar.position = "both";
   const event = { origin: location.origin, source: parent, data: { type: "unin-layout-draft", layout } };
   callbacks.get("message")(event);

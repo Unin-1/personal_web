@@ -16,6 +16,11 @@ export interface LayoutConfig {
     wallpaperMode: "banner" | "fullscreen" | "overlay" | "none";
     desktopImage: string;
     mobileImage: string;
+    desktopImages: string[];
+    mobileImages: string[];
+    carouselEnabled: boolean;
+    carouselInterval: number;
+    carouselEffect: "fade" | "slide" | "kenburns";
     title: string;
     subtitle: string;
     dimOpacity: number;
