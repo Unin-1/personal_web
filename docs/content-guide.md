@@ -257,9 +257,11 @@ enabled false 隐藏，weight 越大越靠前。friendsPageConfig.randomizeSort 
 
 关于页改 `src/content/spec/about.md`，直接按 Markdown 写介绍与联系信息。侧栏与大图图标联系方式分别在 profileConfig 与 backgroundWallpaper 中，详见第4节。
 
-关于页会把单独一段的 `print("Welcome!")`（可加粗或用行内代码包裹）显示成 Python 终端，在进入页面时从左到右输入一次。要换文案，直接把该段改成例如 `**print("你好，欢迎来玩！")**`；需保留单行 `print("...")` 或 `print('...')` 形式。
+关于页会把单独一段的 `print("Welcome!")`（可加粗或用行内代码包裹）显示成 Python 终端，在进入页面时从左到右输入一次；光标仅在输入过程中显示，输入完成后消失。终端背景、标题栏与文字随网站的亮色／暗色主题自动切换。要换文案，直接把该段改成例如 `**print("你好，欢迎来玩！")**`；需保留单行 `print("...")` 或 `print('...')` 形式。
 
-![逐字输入后的 Python 欢迎终端](previews/about-terminal.webp)
+![亮色主题输入完成后的 Python 欢迎终端，光标已隐藏](previews/about-terminal.webp)
+
+![暗色主题的 Python 欢迎终端](previews/about-terminal-dark.webp)
 
 页面没有这种段落时，会在第一个一级标题后显示默认欢迎终端；默认代码在 `src/components/common/TypingTerminal.astro` 与 `AboutIntroduction.astro` 的 `code` 默认值中设置。`TypingTerminal.astro` 的首次 `setTimeout` 为输入前等待时间（默认250毫秒），`typeNext` 内的 `setTimeout` 为字符间隔（默认85毫秒）；单位均为毫秒，修改后刷新开发预览或重新构建发布。
 

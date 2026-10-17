@@ -91,11 +91,10 @@ const { code = 'print("Welcome!")' } = Astro.props;
     display: block;
     margin: 1.25rem 0 1.75rem;
     overflow: hidden;
-    color: #e5eef0;
-    background: #182326;
-    border: 1px solid #36464b;
+    color: var(--tw-prose-body, var(--deep-text));
+    background: color-mix(in oklab, var(--card-bg) 65%, var(--btn-regular-bg));
+    border: 1px solid var(--line-divider);
     border-radius: 0.85rem;
-    box-shadow: 0 0.4rem 1.25rem #0710131a;
   }
 
   .terminal-bar {
@@ -103,9 +102,9 @@ const { code = 'print("Welcome!")' } = Astro.props;
     align-items: center;
     justify-content: space-between;
     padding: 0.65rem 1rem;
-    color: #bac8cd;
-    background: #223136;
-    border-bottom: 1px solid #36464b;
+    color: var(--content-meta);
+    background: color-mix(in oklab, var(--btn-regular-bg) 70%, var(--card-bg));
+    border-bottom: 1px solid var(--line-divider);
     font: 0.75rem / 1.25 ui-monospace, monospace;
   }
 
@@ -119,12 +118,12 @@ const { code = 'print("Welcome!")' } = Astro.props;
   .terminal-lights i {
     width: 0.55rem;
     height: 0.55rem;
-    background: #fc7272;
+    background: color-mix(in oklab, #d99595 75%, var(--card-bg));
     border-radius: 50%;
   }
 
-  .terminal-lights i:nth-child(2) { background: #eecb6a; }
-  .terminal-lights i:nth-child(3) { background: #8ac69b; }
+  .terminal-lights i:nth-child(2) { background: color-mix(in oklab, #d1bd83 75%, var(--card-bg)); }
+  .terminal-lights i:nth-child(3) { background: color-mix(in oklab, #92b8a5 75%, var(--card-bg)); }
 
   pre {
     margin: 0;
@@ -144,20 +143,21 @@ const { code = 'print("Welcome!")' } = Astro.props;
     border-radius: 0;
     font: inherit;
   }
-  .terminal-prompt { color: #8acbc0; }
-  [data-typing-text] { color: #e5eef0; }
+  .terminal-prompt { color: var(--btn-content); }
+  [data-typing-text] { color: inherit; }
 
   .terminal-cursor {
-    display: inline-block;
+    display: none;
     width: 0.55em;
     height: 1.1em;
     margin-left: 0.15em;
     vertical-align: -0.17em;
-    background: #a1d9c9;
+    background: var(--btn-content);
     opacity: 0.65;
   }
 
   [data-state="typing"] .terminal-cursor {
+    display: inline-block;
     animation: terminal-blink 0.9s step-end infinite;
   }
 

@@ -37,7 +37,7 @@ Constraints: original environment only, no people or character closeups, no text
 
 `docs/previews/wallpaper-workbench.webp` 为壁纸模式与轮换控件的 Playwright 截图，1600 × 1100，154,810 bytes，sharp WebP quality 82、effort 6。仅在浏览器草稿中使用公开示例标题和原创春日壁纸，未保存或发布个人配置；原始 PNG 留在本地 `.cache/site-update-20261016/screenshots/`。
 
-`docs/previews/about-terminal.webp` 为 About 欢迎终端的 Playwright 截图，仅截取项目自有终端界面与默认欢迎代码；2026-10-17，628 × 107，2,358 bytes，sharp WebP quality 85、effort 6。原始 PNG 留在本地 `.cache/site-update-20261017/screenshots/`。
+`docs/previews/about-terminal.webp` 与 `about-terminal-dark.webp` 为 About 欢迎终端的亮／暗主题 Playwright 截图，仅截取项目自有终端界面与默认欢迎代码；2026-10-17，均为 628 × 107、2,000 bytes，sharp WebP quality 85、effort 6。原始 PNG 留在本地 `.cache/terminal-theme/`。
 
 ## 春日湖畔壁纸
 
