@@ -111,7 +111,7 @@ JSON 用双引号、不允许注释和尾逗号；TypeScript 允许注释。修�
 | 轮换过渡 | fade／slide／kenburns | 淡入淡出／滑动／缓慢推拉 |
 | 主标题／副标题 | 1–100／1–250 字 | 首页大图文字，不是 SEO 标题 |
 | 主题色相 | 0–360 | 0 红、120 绿、180 青、240 蓝、300 紫；改链接、按钮强调色 |
-| 遮罩暗度 | 0–1 | 越大大图越暗，帮助阅读白色标题 |
+| 遮罩暗度 | 0–1 | 越大壁纸越暗；横幅、全屏、覆盖模式在首页和内页共用，纯色模式不显示壁纸 |
 | 页面宽度 | 60–120 rem | 1rem 通常约16px；手机仍受屏幕限制 |
 | 正文卡片不透明度 | 0.30–1 | 1 实色，较小可见背景；侧栏另设实色 |
 | 背景模糊 | 0–30 px | 0 清晰；overlay 背景与 fullscreen 下滑模糊使用它 |
@@ -256,6 +256,14 @@ id 和目录名相同、唯一，建议小写英文加连字符。首页取数�
 enabled false 隐藏，weight 越大越靠前。friendsPageConfig.randomizeSort true 时友链页随机并忽略权重，首页仍按权重取前四个。页面 title、description 可独立设置；showCustomContent 控制 `src/content/spec/friends.md`，showComment 仍需全站评论服务。默认示例位置不是已建立的友链关系，发布前替换或隐藏。
 
 关于页改 `src/content/spec/about.md`，直接按 Markdown 写介绍与联系信息。侧栏与大图图标联系方式分别在 profileConfig 与 backgroundWallpaper 中，详见第4节。
+
+关于页会把单独一段的 `print("Welcome!")`（可加粗或用行内代码包裹）显示成 Python 终端，在进入页面时从左到右输入一次。要换文案，直接把该段改成例如 `**print("你好，欢迎来玩！")**`；需保留单行 `print("...")` 或 `print('...')` 形式。
+
+![逐字输入后的 Python 欢迎终端](previews/about-terminal.webp)
+
+页面没有这种段落时，会在第一个一级标题后显示默认欢迎终端；默认代码在 `src/components/common/TypingTerminal.astro` 与 `AboutIntroduction.astro` 的 `code` 默认值中设置。`TypingTerminal.astro` 的首次 `setTimeout` 为输入前等待时间（默认250毫秒），`typeNext` 内的 `setTimeout` 为字符间隔（默认85毫秒）；单位均为毫秒，修改后刷新开发预览或重新构建发布。
+
+已在系统中开启“减少动态效果”时直接显示完整代码；读屏始终可读完整代码，切换页面会清理计时器，重新进入时再播放一次。
 
 ## 9. Bilibili 列表与个人观看进度
 

@@ -148,9 +148,8 @@ export function getBannerVisibilityState(
 		bannerPostMeta?.description,
 	);
 
-	const showBannerDim =
-		(isBannerMode || isFullscreenMode || isWallpaperSwitchable) &&
-		isBackgroundEnabled;
+	// The same dim layer covers every wallpaper mode and route.
+	const showBannerDim = isBackgroundEnabled;
 	const dimOpacity = backgroundWallpaper.common?.dimOpacity ?? 0.15;
 
 	const showBannerPageTitle =

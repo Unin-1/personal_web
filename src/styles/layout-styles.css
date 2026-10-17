@@ -452,11 +452,10 @@ body.is-home #wallpaper-wrapper.wallpaper-fullscreen img[class*="object-cover"] 
     display: flex !important;
 }
 
-/* 非首页全屏壁纸模式：与 overlay 一致，隐藏首屏标题/遮罩/水波纹/渐变/滚动指示器（内容在最上面） */
+/* 非首页全屏壁纸模式：保留背景遮罩，隐藏首屏标题/水波纹/渐变/滚动指示器（内容在最上面） */
 body:not(.is-home) #wallpaper-wrapper.wallpaper-fullscreen .banner-home-text-overlay,
 body:not(.is-home) #wallpaper-wrapper.wallpaper-fullscreen .banner-page-title-overlay,
 body:not(.is-home) #wallpaper-wrapper.wallpaper-fullscreen .banner-post-meta-overlay,
-body:not(.is-home) #wallpaper-wrapper.wallpaper-fullscreen #banner-dim-container,
 body:not(.is-home) #wallpaper-wrapper.wallpaper-fullscreen #header-waves,
 body:not(.is-home) #wallpaper-wrapper.wallpaper-fullscreen #wallpaper-gradient,
 body:not(.is-home) #wallpaper-wrapper.wallpaper-fullscreen .scroll-down-indicator {

@@ -200,7 +200,7 @@ test("explicit editor dev uses a root-only loopback server without changing the 
 
 test("preview restores hidden home modules, reorders them, and ignores foreign senders", async () => {
   const listeners = new Map();
-  const parent = { postMessage() {} };
+  const parent = { location: { origin: "http://127.0.0.1:4321", pathname: "/__editor/" }, postMessage() {} };
   const rootStyles = new Map();
   const container = { children: [], append(element) { this.children = this.children.filter((child) => child !== element); this.children.push(element); } };
   const elements = new Map(original.homeModules.map(({ id }) => {
@@ -232,9 +232,26 @@ test("preview restores hidden home modules, reorders them, and ignores foreign s
   assert.equal(rootStyles.get("--sidebar-card-bg-dark"), layout.visual.sidebarCardColorDark);
 });
 
+test("preview reconnects without a query only inside the same-origin workbench and initializes once", async () => {
+  const source = await readFile(new URL("../src/editor/preview.js", import.meta.url), "utf8");
+  for (const pathname of ["/__editor/", "/__editor", "/about/", "/__editor-other/"]) {
+    const registrations = [];
+    const parent = { location: { origin: "http://127.0.0.1:4321", pathname }, postMessage() {} };
+    const window = { parent, addEventListener(name) { registrations.push(name); } };
+    const document = { readyState: "complete", addEventListener() {} };
+    const context = vm.createContext({ window, document, location: { origin: "http://127.0.0.1:4321", search: "" } });
+    vm.runInContext(source, context); vm.runInContext(source, context);
+    assert.equal(registrations.filter((name) => name === "message").length, ["/__editor/", "/__editor"].includes(pathname) ? 1 : 0);
+  }
+  const registrations = [];
+  const parent = { get location() { throw new Error("cross-origin frame"); } };
+  vm.runInNewContext(source, { window: { parent, addEventListener(name) { registrations.push(name); } }, location: { origin: "http://127.0.0.1:4321" } });
+  assert.deepEqual(registrations, []);
+});
+
 test("sidebar preview moves desktop widgets without stealing mobile copies and can restore disabled widgets", async () => {
   const callbacks = new Map();
-  const parent = { postMessage() {} };
+  const parent = { location: { origin: "http://127.0.0.1:4321", pathname: "/__editor/" }, postMessage() {} };
   function widget(id, enabled = true) {
     const classes = new Set();
     return { id, dataset: { editorWidget: id, editorPostOnly: id === "sidebarToc" ? "true" : "false" }, hidden: !enabled, style: {},

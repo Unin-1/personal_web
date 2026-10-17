@@ -64,7 +64,7 @@
 | `visual.carouselEffect` | `fade`／`slide`／`kenburns`，缺省fade | 淡入淡出／滑动／缓慢推拉；不是图片切换顺序 |
 | `visual.title` | 1–100字单行字符串 | 首页大图主标题；与SEO title不同 |
 | `visual.subtitle` | 1–250字单行字符串 | 首页大图副标题；工作台字段不支持副标题数组 |
-| `visual.dimOpacity` | 0–1数字 | 大图遮罩暗度，0不压暗、1最暗 |
+| `visual.dimOpacity` | 0–1数字 | 全站壁纸遮罩暗度，0不压暗、1最暗；横幅／全屏／覆盖模式的首页和内页共用，纯色无壁纸 |
 | `visual.hue` | 0–360数字 | 主题色相；覆盖 siteConfig.themeColor.hue |
 | `visual.pageWidth` | 60–120数字，rem | 页面最大宽度；覆盖 siteConfig.pageWidth |
 | `visual.cardOpacity` | 0.30–1数字 | 正文卡片不透明度，1实色；不覆盖侧栏实色 |

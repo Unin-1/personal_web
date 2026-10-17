@@ -1,0 +1,180 @@
+---
+interface Props {
+  code?: string;
+}
+
+const { code = 'print("Welcome!")' } = Astro.props;
+---
+
+<typing-terminal class="typing-terminal not-prose" data-code={code} data-state="complete">
+  <div class="terminal-bar" aria-hidden="true">
+    <span class="terminal-lights"><i></i><i></i><i></i></span>
+    <span>python</span>
+    <span class="terminal-bar-spacer"></span>
+  </div>
+  <pre aria-label="Python 终端"><span class="terminal-prompt" aria-hidden="true">&gt;&gt;&gt; </span><code><span class="terminal-sr-only">{code}</span><span aria-hidden="true"><span data-typing-text>{code}</span><span class="terminal-cursor"></span></span></code></pre>
+</typing-terminal>
+
+<script>
+  class TypingTerminal extends HTMLElement {
+    private timer: ReturnType<typeof setTimeout> | undefined;
+    private listeners: AbortController | undefined;
+    private output: HTMLElement | null = null;
+    private characters: string[] = [];
+    private position = 0;
+
+    connectedCallback() {
+      this.clear();
+      this.output = this.querySelector("[data-typing-text]");
+      if (!this.output) return;
+
+      this.characters = Array.from(this.dataset.code || "");
+      this.position = 0;
+      this.listeners = new AbortController();
+      const { signal } = this.listeners;
+      const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+      motion.addEventListener("change", () => {
+        if (motion.matches) this.finish();
+      }, { signal });
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) this.finish();
+      }, { signal });
+      window.addEventListener("pagehide", () => this.finish(), { signal });
+
+      if (motion.matches || document.hidden) {
+        this.finish();
+        return;
+      }
+
+      this.output.textContent = "";
+      this.dataset.state = "typing";
+      this.timer = setTimeout(() => this.typeNext(), 250);
+    }
+
+    disconnectedCallback() {
+      this.clear();
+    }
+
+    private typeNext() {
+      if (!this.isConnected || !this.output) return;
+      this.position += 1;
+      this.output.textContent = this.characters.slice(0, this.position).join("");
+      if (this.position >= this.characters.length) {
+        this.finish();
+        return;
+      }
+      this.timer = setTimeout(() => this.typeNext(), 85);
+    }
+
+    private finish() {
+      clearTimeout(this.timer);
+      this.timer = undefined;
+      if (this.output) this.output.textContent = this.characters.join("");
+      this.dataset.state = "complete";
+    }
+
+    private clear() {
+      clearTimeout(this.timer);
+      this.timer = undefined;
+      this.listeners?.abort();
+      this.listeners = undefined;
+    }
+  }
+
+  if (!customElements.get("typing-terminal")) {
+    customElements.define("typing-terminal", TypingTerminal);
+  }
+</script>
+
+<style>
+  .typing-terminal {
+    display: block;
+    margin: 1.25rem 0 1.75rem;
+    overflow: hidden;
+    color: #e5eef0;
+    background: #182326;
+    border: 1px solid #36464b;
+    border-radius: 0.85rem;
+    box-shadow: 0 0.4rem 1.25rem #0710131a;
+  }
+
+  .terminal-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.65rem 1rem;
+    color: #bac8cd;
+    background: #223136;
+    border-bottom: 1px solid #36464b;
+    font: 0.75rem / 1.25 ui-monospace, monospace;
+  }
+
+  .terminal-lights,
+  .terminal-bar-spacer {
+    display: flex;
+    gap: 0.35rem;
+    width: 2.8rem;
+  }
+
+  .terminal-lights i {
+    width: 0.55rem;
+    height: 0.55rem;
+    background: #fc7272;
+    border-radius: 50%;
+  }
+
+  .terminal-lights i:nth-child(2) { background: #eecb6a; }
+  .terminal-lights i:nth-child(3) { background: #8ac69b; }
+
+  pre {
+    margin: 0;
+    padding: 1.25rem;
+    overflow-x: auto;
+    color: inherit;
+    background: transparent;
+    font: 1rem / 1.7 var(--font-code, ui-monospace, monospace);
+    white-space: pre;
+  }
+
+  .typing-terminal code {
+    padding: 0;
+    overflow: visible;
+    color: inherit;
+    background: transparent;
+    border-radius: 0;
+    font: inherit;
+  }
+  .terminal-prompt { color: #8acbc0; }
+  [data-typing-text] { color: #e5eef0; }
+
+  .terminal-cursor {
+    display: inline-block;
+    width: 0.55em;
+    height: 1.1em;
+    margin-left: 0.15em;
+    vertical-align: -0.17em;
+    background: #a1d9c9;
+    opacity: 0.65;
+  }
+
+  [data-state="typing"] .terminal-cursor {
+    animation: terminal-blink 0.9s step-end infinite;
+  }
+
+  .terminal-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  @keyframes terminal-blink { 50% { opacity: 0; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .terminal-cursor { animation: none !important; }
+  }
+</style>

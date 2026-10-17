@@ -1,6 +1,13 @@
 // This bridge is injected only by `npm run edit`, never into production output.
 (() => {
-  if (window.parent === window || !new URLSearchParams(location.search).has("editor-preview")) return;
+  if (window.parent === window) return;
+  // Inner-page navigation and reload can drop the preview query string.
+  // Accept drafts only while embedded in our same-origin author workbench.
+  try {
+    if (window.parent.location.origin !== location.origin || !/^\/__editor\/?$/.test(window.parent.location.pathname)) return;
+  } catch { return; }
+  if (window.__uninLayoutPreviewBridge) return;
+  window.__uninLayoutPreviewBridge = true;
   let draft;
   let base = "/";
   const imageUrl = (source) => /^(assets|images)\//.test(source) ? `${base}src/${source}` : source?.startsWith("/") ? `${base}${source.slice(1)}` : source;
