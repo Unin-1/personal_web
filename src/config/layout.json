@@ -1,0 +1,145 @@
+{
+  "version": 1,
+  "homeModules": [
+    {
+      "id": "intro",
+      "enabled": true
+    },
+    {
+      "id": "featured",
+      "enabled": true
+    },
+    {
+      "id": "posts",
+      "enabled": true
+    },
+    {
+      "id": "projects",
+      "enabled": true
+    },
+    {
+      "id": "gallery",
+      "enabled": true
+    },
+    {
+      "id": "anime",
+      "enabled": true
+    },
+    {
+      "id": "links",
+      "enabled": true
+    }
+  ],
+  "sidebar": {
+    "enabled": true,
+    "position": "both",
+    "left": [
+      {
+        "id": "profile",
+        "enabled": true,
+        "sticky": false
+      },
+      {
+        "id": "categories",
+        "enabled": true,
+        "sticky": false
+      },
+      {
+        "id": "tags",
+        "enabled": true,
+        "sticky": false
+      },
+      {
+        "id": "sidebarToc",
+        "enabled": true,
+        "sticky": false
+      }
+    ],
+    "right": [
+      {
+        "id": "calendar",
+        "enabled": false,
+        "sticky": false
+      },
+      {
+        "id": "siteInfo",
+        "enabled": false,
+        "sticky": false
+      },
+      {
+        "id": "stats",
+        "enabled": false,
+        "sticky": false
+      },
+      {
+        "id": "announcement",
+        "enabled": true,
+        "sticky": false
+      },
+      {
+        "id": "music",
+        "enabled": true,
+        "sticky": false
+      }
+    ]
+  },
+  "visual": {
+    "wallpaperMode": "fullscreen",
+    "desktopImage": "/assets/backgrounds/pc/21.webp",
+    "mobileImage": "/assets/backgrounds/phone/14.webp",
+    "desktopImages": [
+      "/assets/backgrounds/pc/1.webp",
+      "/assets/backgrounds/pc/2.webp",
+      "/assets/backgrounds/pc/3.webp",
+      "/assets/backgrounds/pc/4.webp",
+      "/assets/backgrounds/pc/5.webp",
+      "/assets/backgrounds/pc/6.webp",
+      "/assets/backgrounds/pc/7.webp",
+      "/assets/backgrounds/pc/8.webp",
+      "/assets/backgrounds/pc/9.webp",
+      "/assets/backgrounds/pc/10.webp",
+      "/assets/backgrounds/pc/11.webp",
+      "/assets/backgrounds/pc/12.webp",
+      "/assets/backgrounds/pc/13.webp",
+      "/assets/backgrounds/pc/14.webp",
+      "/assets/backgrounds/pc/15.webp",
+      "/assets/backgrounds/pc/16.webp",
+      "/assets/backgrounds/pc/17.webp",
+      "/assets/backgrounds/pc/18.webp",
+      "/assets/backgrounds/pc/19.webp",
+      "/assets/backgrounds/pc/20.webp"
+    ],
+    "mobileImages": [
+      "/assets/backgrounds/phone/1.webp",
+      "/assets/backgrounds/phone/2.webp",
+      "/assets/backgrounds/phone/3.webp",
+      "/assets/backgrounds/phone/4.webp",
+      "/assets/backgrounds/phone/5.webp",
+      "/assets/backgrounds/phone/6.webp",
+      "/assets/backgrounds/phone/7.webp",
+      "/assets/backgrounds/phone/8.webp",
+      "/assets/backgrounds/phone/9.webp",
+      "/assets/backgrounds/phone/10.webp",
+      "/assets/backgrounds/phone/11.webp",
+      "/assets/backgrounds/phone/12.webp",
+      "/assets/backgrounds/phone/13.webp",
+      "/assets/backgrounds/phone/14.webp",
+      "/assets/backgrounds/phone/15.webp",
+      "/assets/backgrounds/phone/16.webp",
+      "/assets/backgrounds/phone/17.webp"
+    ],
+    "carouselEnabled": true,
+    "carouselInterval": 6000,
+    "carouselEffect": "fade",
+    "title": "Unin の Cafe",
+    "subtitle": "Code , Art and What I love.",
+    "dimOpacity": 0.3,
+    "hue": 155,
+    "pageWidth": 90,
+    "cardOpacity": 0.85,
+    "sidebarCardColorLight": "#ffffff",
+    "sidebarCardColorDark": "#1d2523",
+    "blur": 8,
+    "postListMode": "list"
+  }
+}

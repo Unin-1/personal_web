@@ -1,0 +1,38 @@
+---
+import { getLqipProps } from "@/utils/lqip-utils";
+
+interface Props {
+	src: string;
+	albumId: string;
+	alt?: string;
+	caption?: string;
+}
+
+const { src, albumId, alt = "相册照片", caption = "" } = Astro.props;
+
+// LQIP 渐变占位
+const lqipProps = getLqipProps(src, undefined, true);
+---
+
+<figure class="gallery-photo-card break-inside-avoid mb-3">
+  <a
+    href={src}
+    data-no-swup
+    aria-label={`放大查看：${alt}`}
+    data-fancybox={`gallery-${albumId}`}
+    data-src={src}
+    data-type="image"
+    data-caption={caption}
+    class="block rounded-xl overflow-hidden relative group cursor-pointer"
+  >
+    <div class="lqip-placeholder absolute inset-0 pointer-events-none" style={lqipProps.style} aria-hidden="true"></div>
+    <img
+      src={src}
+      alt={alt}
+      loading="lazy"
+      decoding="async"
+      class="w-full h-auto object-cover opacity-0 transition-all duration-500 ease-out group-hover:scale-105"
+    />
+  </a>
+  {caption && <figcaption class="text-sm text-black/60 dark:text-white/60 px-1 pt-2 pb-1">{caption}</figcaption>}
+</figure>

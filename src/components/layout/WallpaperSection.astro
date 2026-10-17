@@ -1,0 +1,171 @@
+---
+import ImageWrapper from "@/components/common/ImageWrapper.astro";
+import ScrollDownIndicator from "@/components/controls/ScrollDownIndicator.astro";
+import BackgroundPlayer from "@/components/features/BackgroundPlayer.astro";
+import BannerHomeTextOverlay from "@/components/layout/BannerHomeTextOverlay.astro";
+import BannerPostMetaOverlay from "@/components/layout/BannerPostMetaOverlay.astro";
+import { backgroundWallpaper } from "@/config";
+import type {
+	BannerPostMeta,
+	BannerVisibilityState,
+} from "@/utils/banner-visibility-utils";
+import type { BackgroundImages } from "@/utils/layout-utils";
+
+interface Props {
+	state: BannerVisibilityState;
+	backgroundImages: BackgroundImages;
+	title?: string;
+	bannerPostMeta?: BannerPostMeta;
+}
+
+const { state, backgroundImages, title, bannerPostMeta } = Astro.props;
+const isLayoutEditor = import.meta.env.DEV && process.env.LOCAL_LAYOUT_EDITOR === "1";
+const renderWallpaper = isLayoutEditor || state.isWallpaperSwitchable || state.isBannerMode || state.isFullscreenMode || state.isOverlayMode;
+const wallpaperPosition = state.isFullscreenMode
+	? (backgroundWallpaper.fullscreen?.position ??
+		backgroundWallpaper.banner?.position)
+	: backgroundWallpaper.banner?.position;
+---
+
+<!-- Editor always has the real wrapper, including when the saved mode is none. -->
+{renderWallpaper && (
+<div id="wallpaper-wrapper" class="absolute z-10 w-full overflow-hidden" style={`--overlay-opacity: ${backgroundWallpaper.overlay?.opacity ?? 0.8}; --overlay-z-index: ${backgroundWallpaper.overlay?.zIndex ?? -1}; --overlay-blur: ${backgroundWallpaper.overlay?.blur ?? 0}px;`}>
+    <div class:list={["relative h-full w-full bg-(--page-bg)", `effect-${state.bannerCarouselEffect}`]} id="banner-images-container"
+         style={`z-index: 5; --carousel-interval: ${state.bannerCarouselInterval}ms`}
+         data-carousel-enabled={state.bannerCarouselEnabledDefault}
+         data-carousel-switchable={state.bannerCarouselSwitchable}
+         data-carousel-interval={state.bannerCarouselInterval}
+         data-carousel-effect={state.bannerCarouselEffect}>
+        {(["mobile", "desktop"] as const).map((device) => backgroundImages[device].map((source, index) => (
+            <div class:list={["slide-item", device === "mobile" ? "block lg:hidden" : "hidden lg:block", index === 0 && "active"]} data-device={device} data-index={index}>
+                <template>
+                    <ImageWrapper alt="" class="object-cover h-full w-full" src={source} position={wallpaperPosition}
+                        width={device === "mobile" ? 828 : 1920} widths={device === "mobile" ? [640, 828] : [1280, 1920]}
+                        sizes="100vw" loading="eager" fadeIn={false} quality={device === "mobile" ? state.mobileQuality : state.configQuality} />
+                </template>
+            </div>
+        )))}
+        <noscript>
+            {(["mobile", "desktop"] as const).map((device) => backgroundImages[device][0] && (
+                <div class:list={["slide-item active", device === "mobile" ? "block lg:hidden" : "hidden lg:block"]}>
+                    <ImageWrapper alt="" class="object-cover h-full w-full" src={backgroundImages[device][0]} position={wallpaperPosition}
+                        width={device === "mobile" ? 828 : 1920} sizes="100vw" loading="eager" fadeIn={false} fetchpriority="high" />
+                </div>
+            ))}
+        </noscript>
+    </div>
+    <script>
+        import { createWallpaperController } from "@/utils/wallpaper-runtime.mjs";
+        const host = window as typeof window & { __uninWallpaperRuntime?: { destroy: () => void } };
+        host.__uninWallpaperRuntime?.destroy();
+        const container = document.getElementById("banner-images-container");
+        if (container) {
+            host.__uninWallpaperRuntime = createWallpaperController(container);
+            window.dispatchEvent(new Event("unin-wallpaper-ready"));
+        }
+    </script>
+
+    {backgroundWallpaper.playerEnable && typeof backgroundWallpaper.src === "object" && !Array.isArray(backgroundWallpaper.src) && backgroundWallpaper.src.playerUrl && (
+        <BackgroundPlayer playerUrl={backgroundWallpaper.src.playerUrl} playerMode={backgroundWallpaper.common?.playerMode ?? "order"} />
+    )}
+
+    <div id="banner-dim-container" class="absolute inset-0 z-10 pointer-events-none">
+        {(state.showBannerDim || isLayoutEditor) && <div class="banner-dim-overlay absolute inset-0" style={`background: rgba(0, 0, 0, ${state.dimOpacity})`}></div>}
+    </div>
+
+    <div id="banner-overlay-container" class="absolute inset-0 z-20 pointer-events-none transition-swup-fade">    <!-- Home page text overlay - 始终渲染以便切换模式时控制显示 -->
+    <BannerHomeTextOverlay showHomeText={state.showHomeText} initialRandomSubtitle={state.initialRandomSubtitle} />
+
+    <!-- Non-home non-post page title overlay (desktop only) -->
+    {state.showBannerPageTitle && (
+        <div class="banner-page-title-overlay absolute inset-0 z-20 hidden lg:flex items-center justify-center pointer-events-none">
+            <div class="w-4/5 lg:w-3/4 text-center mb-0">
+                <div class="banner-page-title font-bold text-white leading-tight inline-flex items-center justify-center gap-3">
+                    {/* <Icon name="material-symbols:bookmark-rounded" class="banner-page-title-icon" /> */}
+                    <span class="banner-page-title-text">{title}</span>
+                </div>
+            </div>
+        </div>
+    )}
+
+    <!-- Non-home post banner meta overlay (desktop only) -->
+    <BannerPostMetaOverlay showBannerPostMeta={state.showBannerPostMeta} bannerPostInfoMode={state.bannerPostInfoMode} bannerDescriptionWidth={state.bannerDescriptionWidth} bannerPostMeta={bannerPostMeta} />
+
+    </div>
+
+    <!-- Fullscreen 模式下显示向下滚动指示器（仅首页显示；放在 overlay 容器外，避免被标题视差 transform 带离）。
+         始终渲染：壁纸区在 Swup 容器外、切页不重渲染，若首开非首页则指示器不会出现。
+         是否显示交给 CSS（body.is-home + fullscreen 模式才 display:flex） -->
+    {(state.isFullscreenMode || state.isWallpaperSwitchable || isLayoutEditor) && <ScrollDownIndicator />}
+
+    <!-- Water waves effect - 如果允许切换或任一设备启用则渲染 -->
+    {state.shouldRenderWaves ? (
+    <div class={`waves absolute -bottom-px h-[10vh] max-h-37.5 min-h-12.5 w-full md:h-[15vh]
+        ${!state.wavesEnabledOnMobile ? 'hidden' : ''} ${!state.wavesEnabledOnDesktop ? 'md:hidden' : ''} ${state.wavesEnabledOnDesktop ? 'md:block' : ''}`}
+        id="header-waves"
+        style="transform: translateZ(0);">
+        <!-- 静态占位波浪:随 HTML 首帧渲染,先于壁纸出现避免闪烁;由 WavesEffect.astro 动画 canvas 无缝接管后隐藏 -->
+        <svg
+            class="waves-svg"
+            xmlns="http://www.w3.org/2000/svg"
+            xmlns:xlink="http://www.w3.org/1999/xlink"
+            viewBox="0 24 150 28"
+            preserveAspectRatio="none"
+            shape-rendering="geometricPrecision"
+            aria-hidden="true"
+        >
+            <defs>
+                <path
+                    id="gentle-wave"
+                    d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v48h-352z"
+                ></path>
+            </defs>
+            <g>
+                <!-- x 偏移 = 四层均匀铺开的起始相位(0/0.25/0.5/0.75)在 t=0 的偏移,首帧即交错,与动画首帧逐像素一致 -->
+                <use
+                    xlink:href="#gentle-wave"
+                    x="-42.000"
+                    y="0"
+                    class="opacity-25 fill-(--page-bg)"
+                ></use>
+                <use
+                    xlink:href="#gentle-wave"
+                    x="2.641"
+                    y="3"
+                    class="opacity-50 fill-(--page-bg)"
+                ></use>
+                <use
+                    xlink:href="#gentle-wave"
+                    x="48.944"
+                    y="5"
+                    class="opacity-65 fill-(--page-bg)"
+                ></use>
+                <use
+                    xlink:href="#gentle-wave"
+                    x="92.468"
+                    y="7"
+                    class="opacity-75 fill-(--page-bg)"
+                ></use>
+            </g>
+        </svg>
+    </div>
+    ) : null}
+
+    <!-- Gradient transition - 当水波纹关闭时显示，提供壁纸底部到背景色的平滑过渡 -->
+    {state.shouldRenderGradient ? (
+    <div class={`wallpaper-gradient absolute bottom-0 left-0 w-full pointer-events-none
+        ${!state.gradientEnabledOnMobile ? 'hidden' : ''} ${!state.gradientEnabledOnDesktop ? 'md:hidden' : ''} ${state.gradientEnabledOnDesktop ? 'md:block' : ''}`}
+        id="wallpaper-gradient"
+        style={`height: ${state.gradientHeight}; background: linear-gradient(to bottom, transparent, var(--page-bg));`}>
+    </div>
+    ) : null}
+</div>
+)}
+
+{/* 当壁纸未渲染时，添加空的 Swup 占位容器，避免 Swup 找不到容器而回退为整页加载 */}
+{!renderWallpaper && (
+<>
+    <div id="banner-overlay-container" class="hidden"></div>
+    <div id="banner-dim-container" class="hidden"></div>
+</>
+)}
