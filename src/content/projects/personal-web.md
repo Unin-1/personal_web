@@ -5,6 +5,7 @@ repo: Unin-1/personal_web
 status: in-progress
 order: 100
 tags: [Astro, 博客, 开源]
+image: ./images/blog.png
 ---
 
 ->即本站<br>

@@ -1,5 +1,5 @@
 ---
-title: 把灵感写下来：Markdown 与数学公式
+title: Markdown 的应用
 published: 2026-10-15
 description: 一份可以直接参考的写作示例：标签、图片、代码、表格，以及行内和块级数学公式。
 image: /assets/backgrounds/phone/17.webp
@@ -7,6 +7,8 @@ tags: [Markdown, LaTeX, 写作]
 category: 技术
 comment: false
 ---
+
+好久没手动写过Markdown，我自己也遗忘了不少语法，借此机会复习一下
 
 ## 文字，也可以很有条理
 
