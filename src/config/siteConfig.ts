@@ -42,17 +42,17 @@ const pages = resolvePageToggles({
 
 export const siteConfig: SiteConfig = {
 	// 站点标题
-	title: "Unin 的小站",
+	title: "Unin の Cafe",
 
 	// 站点副标题
-	subtitle: "记录热爱，也记录日常。",
+	subtitle: "你所热爱的，就是你的生活。",
 
 	// 站点 URL
 	site_url: "https://unin-1.github.io",
 
 	// 站点描述
 	description:
-		"Unin 的个人博客，收藏技术笔记、开源项目、镜头下的风景，以及二次元生活里的小小心动。",
+		"Unin 的个人博客，收藏技术笔记、开源项目、以及自己的一点小爱好。",
 
 	// 站点关键词
 	keywords: [
@@ -116,7 +116,7 @@ export const siteConfig: SiteConfig = {
 			alt: "Unin",
 		},
 		// 导航栏标题
-		title: "Unin の小站",
+		title: "Unin の Cafe",
 		// 全宽导航栏，导航栏是否占满屏幕宽度
 		widthFull: false,
 		// 导航菜单对齐方式，left：左对齐，center：居中

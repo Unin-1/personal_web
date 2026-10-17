@@ -2,7 +2,7 @@
 title: 你好，世界。这里是 Unin 的小站
 published: 2026-10-15
 description: 记录代码与日常，收藏风景与灵感。从这里，开始一段新的旅程。
-image: /assets/backgrounds/summer-sky.webp
+image: /assets/backgrounds/pc/21.webp
 tags: [日常, 小站记录]
 category: 生活
 pinned: true
@@ -11,7 +11,7 @@ comment: false
 
 ## 欢迎来到我的小小世界
 
-这是一篇欢迎文章，也是这个博客的第一张书签。之后会在这里慢慢放下技术笔记、正在做的项目、旅途中的照片，还有喜欢的二次元作品。
+这是一篇欢迎文章，也是这个博客的第一张书签。之后会在这里慢慢放下技术笔记、正在做的项目、旅途中的照片，还有喜欢的作品。
 
 > 愿你在平凡的一天里，也能发现一点闪光。
 

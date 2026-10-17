@@ -2,7 +2,7 @@
 title: 把灵感写下来：Markdown 与数学公式
 published: 2026-10-15
 description: 一份可以直接参考的写作示例：标签、图片、代码、表格，以及行内和块级数学公式。
-image: /assets/backgrounds/summer-sky.webp
+image: /assets/backgrounds/phone/17.webp
 tags: [Markdown, LaTeX, 写作]
 category: 技术
 comment: false
@@ -43,6 +43,4 @@ $$
 const collectMoments = (moments) => moments.filter((moment) => moment.sparkles);
 ```
 
-![明亮的夏日天空与远处的海岸小镇，原创二次元插画](/assets/backgrounds/summer-sky.webp)
-
-这张图片是本站的原创示例壁纸，可以在相册中放大查看。
+![请支持篠泽广](/assets/backgrounds/phone/17.webp)

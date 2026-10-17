@@ -91,7 +91,7 @@ test("文章渲染 Markdown、行内与块公式、图片和标签筛选", async
   await expect(page.locator(".custom-md .katex").first()).toBeVisible();
   await expect(page.locator(".custom-md .katex-display")).toHaveCount(2);
   await expect(page.locator(".custom-md pre")).toBeVisible();
-  await expectLoadedImage(page, '.custom-md img[src*="summer-sky"]');
+  await expectLoadedImage(page, ".custom-md img");
   await page.locator('a[href*="archive/?tag=Markdown"]').first().click();
   await expect(page).toHaveURL(/archive\/\?tag=Markdown/);
   await expect(page.locator("#archive-filter-header")).toBeVisible();
@@ -131,8 +131,12 @@ test("访客可切换文章列表与网格，刷新后保持浏览器偏好", as
 
 test("相册图片可放大并通过 Escape 关闭", async ({ page }) => {
   await visit(page, "gallery/");
-  await page.locator('a[href$="/gallery/summer-sky/"]').first().click();
-  await expect(page).toHaveURL(`${site}gallery/summer-sky/`);
+  const album = page.locator(".album-card .album-card-image").first();
+  const albumHref = await album.getAttribute("href");
+  if (!albumHref) throw new Error("Album link is missing");
+  expect(albumHref).toMatch(/^\/personal_web\/gallery\/[^/]+\/$/);
+  await album.click();
+  await expect(page).toHaveURL(new URL(albumHref, site).href);
   const photo = page.locator('.gallery-photo-card [data-fancybox]').first();
   await expect(photo).toBeVisible();
   await expectLoadedImage(page, ".gallery-photo-card img");
@@ -166,19 +170,38 @@ test("GitHub 项目状态筛选及搜索空态", async ({ page }) => {
   await expect(page.locator(".project-card").first()).toBeVisible();
 });
 
-test("追番和音乐未配置时显示空态，播放器在站内切页保持单实例", async ({ page }) => {
+test("追番列表与模拟 Meting 歌单可用，播放器在站内切页保持单实例且不自动播放", async ({ page }) => {
+  const track = {
+    name: "浏览器验收歌曲",
+    artist: "测试音源",
+    url: "https://music-fixture.invalid/track.wav",
+    pic: "https://music-fixture.invalid/cover.svg",
+    lrc: "[00:00.00]这是本地模拟的歌词",
+  };
+  let playlistRequests = 0;
+  await page.route((url) => url.pathname.includes("/meting"), async (route) => {
+    playlistRequests += 1;
+    await route.fulfill({ json: [track] });
+  });
+  await page.route("https://music-fixture.invalid/**", (route) => route.fulfill({
+    contentType: "image/svg+xml",
+    body: '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="#b7dfd0"/></svg>',
+  }));
   await visit(page, "bilibili/");
-  await expect(page.getByRole("heading", { name: "追番清单即将开启" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "我的追番", exact: true })).toBeVisible();
+  await expect(page.locator("#anime-search")).toBeVisible();
+  await expect(page.locator(".anime-card").first()).toBeVisible();
   await expect.poll(() => page.evaluate(() => Boolean((window as PlayerWindow).__fireflyMusic))).toBe(true);
   await page.locator("#music-player-switch").click();
   const player = page.locator("#music-nav-panel");
   await expect(player).toBeVisible();
-  await expect(player.locator(".music-title")).toContainText("暂无歌曲");
+  await expect(player.locator(".music-title")).toContainText(track.name);
   await expect.poll(() => page.evaluate(() => (window as PlayerWindow).__fireflyMusic?.getState().initialized)).toBe(true);
   await page.evaluate(() => { (window as PlayerWindow).__musicBeforeNavigation = (window as PlayerWindow).__fireflyMusic; });
   await expect(page.locator("body > audio")).toHaveCount(1);
   const before = await page.evaluate(() => (window as PlayerWindow).__fireflyMusic?.getState());
-  expect(before?.playlist).toEqual([]);
+  expect(playlistRequests).toBe(1);
+  expect(before?.playlist).toEqual([track]);
   expect(before?.isPlaying).toBe(false);
   await page.locator("#music-player-switch").click();
   await page.locator('a[href$="/projects/"]:visible').first().click();

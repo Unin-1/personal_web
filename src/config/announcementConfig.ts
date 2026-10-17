@@ -5,7 +5,7 @@ export const announcementConfig: AnnouncementConfig = {
 	title: "小站广播",
 
 	// 公告内容
-	content: "欢迎路过这里。愿你今天也能遇见一点小确幸。",
+	content: "今天也要开心哦⁽¯꒳¯⁾",
 
 	// 是否允许用户关闭公告
 	closable: true,

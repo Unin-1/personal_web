@@ -22,6 +22,7 @@ export const backgroundWallpaper: BackgroundWallpaperConfig = {
       linksEnable: true,
       links: [
         { name: "GitHub", icon: "fa7-brands:github", url: "https://github.com/Unin-1", showName: true },
+        { name: "bilibili", icon: "fa7-brands:bilibili", url: "https://space.bilibili.com/515140354?spm_id_from=333.1007.0.0", showName: true },
         { name: "RSS", icon: "fa7-solid:rss", url: "/rss/", showName: true },
       ],
     },

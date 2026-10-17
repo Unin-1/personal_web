@@ -1,11 +1,34 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { expect, test } from "@playwright/test";
+import { expect, test, type Locator } from "@playwright/test";
 
 const editor = "http://127.0.0.1:4321/__editor/";
 const site = "http://127.0.0.1:4322/personal_web/";
 const layoutFile = path.resolve("src/config/layout.json");
 const screenshots = path.resolve(".cache/site-update-20261016/screenshots");
+
+type WallpaperVisual = {
+  desktopImage: string;
+  mobileImage: string;
+  desktopImages?: string[];
+  mobileImages?: string[];
+  carouselInterval: number;
+};
+
+function deviceImages(visual: WallpaperVisual, device: "desktop" | "mobile") {
+  const images = visual[`${device}Images`];
+  return images?.length ? images : [visual[`${device}Image`]];
+}
+
+async function expectWallpaperImage(image: Locator, source: string) {
+  await expect.poll(async () => (await image.getAttribute("src"))?.endsWith(source), {
+    message: `当前壁纸应使用配置中的图片 ${source}`,
+  }).toBe(true);
+  await expect.poll(() => image.evaluate((element) => {
+    const image = element as HTMLImageElement;
+    return image.complete && image.naturalWidth > 0;
+  })).toBe(true);
+}
 
 test.beforeEach(async ({ page }) => {
   const errors: string[] = [];
@@ -18,12 +41,15 @@ test.afterEach(async ({ page }) => {
 });
 
 test("生产壁纸自动轮换，并在站内导航后保持同一个控制器", async ({ page }) => {
+  const { visual } = JSON.parse(await readFile(layoutFile, "utf8")) as { visual: WallpaperVisual };
+  const desktop = deviceImages(visual, "desktop");
+  expect(desktop.length).toBeGreaterThan(1);
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto(site);
   const container = page.locator("#banner-images-container");
   await expect(container).toHaveAttribute("data-carousel-playing", "true");
-  await expect.poll(() => container.getAttribute("data-active-index"), { timeout: 20_000 }).toBe("1");
-  await expect(page.locator('.slide-item[data-device="desktop"].active img')).toHaveAttribute("src", /spring-lake\.webp/);
+  await expect.poll(() => container.getAttribute("data-active-index"), { timeout: visual.carouselInterval + 15_000 }).toBe("1");
+  await expectWallpaperImage(page.locator('.slide-item[data-device="desktop"].active img'), desktop[1]);
   await page.evaluate(() => {
     const host = window as typeof window & { __uninWallpaperRuntime?: unknown; __wallpaperBeforeNavigation?: unknown };
     host.__wallpaperBeforeNavigation = host.__uninWallpaperRuntime;
@@ -97,6 +123,11 @@ test("壁纸四模式无需保存即可改变真实布局，纯色保存后仍�
 test("桌面手机轮播可实时设置、自动前进、暂停及保存，减少动态时停在首张", async ({ page }) => {
   test.setTimeout(120_000);
   const original = await readFile(layoutFile);
+  const { visual } = JSON.parse(original.toString()) as { visual: WallpaperVisual };
+  const desktop = deviceImages(visual, "desktop").slice(0, 2);
+  const mobile = deviceImages(visual, "mobile").slice(0, 2);
+  expect(desktop).toHaveLength(2);
+  expect(mobile).toHaveLength(2);
   await page.emulateMedia({ reducedMotion: "no-preference" });
   try {
     await page.goto(editor);
@@ -106,8 +137,8 @@ test("桌面手机轮播可实时设置、自动前进、暂停及保存，减�
     const mode = page.locator('[data-config="visual.wallpaperMode"]');
     const enabled = page.locator('[data-config="visual.carouselEnabled"]');
     await mode.selectOption("overlay");
-    await page.locator('[data-config="visual.desktopImages"]').fill("/assets/backgrounds/summer-sky.webp\n/assets/backgrounds/spring-lake.webp");
-    await page.locator('[data-config="visual.mobileImages"]').fill("/assets/backgrounds/summer-sky-mobile.webp\n/assets/backgrounds/spring-lake-mobile.webp");
+    await page.locator('[data-config="visual.desktopImages"]').fill(desktop.join("\n"));
+    await page.locator('[data-config="visual.mobileImages"]').fill(mobile.join("\n"));
     await page.locator('[data-config="visual.carouselInterval"]').fill("3");
     await page.locator('[data-config="visual.carouselEffect"]').selectOption("slide");
     await enabled.check();
@@ -115,16 +146,16 @@ test("桌面手机轮播可实时设置、自动前进、暂停及保存，减�
     await expect(container).toHaveAttribute("data-carousel-interval", "3000");
     await expect(container).toHaveClass(/effect-slide/);
     await expect.poll(() => container.getAttribute("data-active-index"), { timeout: 12_000 }).toBe("1");
-    await expect(preview.locator('.slide-item[data-device="desktop"].active img')).toHaveAttribute("src", /spring-lake\.webp/);
+    await expectWallpaperImage(preview.locator('.slide-item[data-device="desktop"].active img'), desktop[1]);
     await enabled.uncheck();
     await expect(container).toHaveAttribute("data-carousel-playing", "false");
     await expect(container).toHaveAttribute("data-active-index", "0");
 
     await page.getByRole("button", { name: "手机", exact: true }).click();
-    await expect(preview.locator('.slide-item[data-device="mobile"].active img')).toHaveAttribute("src", /summer-sky-mobile\.webp/);
+    await expectWallpaperImage(preview.locator('.slide-item[data-device="mobile"].active img'), mobile[0]);
     await enabled.check();
     await expect.poll(() => container.getAttribute("data-active-index"), { timeout: 12_000 }).toBe("1");
-    await expect(preview.locator('.slide-item[data-device="mobile"].active img')).toHaveAttribute("src", /spring-lake-mobile\.webp/);
+    await expectWallpaperImage(preview.locator('.slide-item[data-device="mobile"].active img'), mobile[1]);
     await mode.selectOption("none");
     await expect(container).toHaveAttribute("data-carousel-playing", "false");
     await mode.selectOption("overlay");
@@ -160,7 +191,7 @@ test("有同步追番时，深浅色文字可辨、海报完整且加载失败�
   });
   await page.goto(`${site}bilibili/`);
   const cards = page.locator(".anime-card");
-  test.skip(await cards.count() === 0, "该站点未配置公开追番快照；有数据时执行真实列表验收。");
+  expect(await cards.count(), "已发布的追番快照应包含作品").toBeGreaterThan(0);
   const card = cards.first();
   const title = card.locator("h3");
   const cover = card.locator(".anime-poster-image");
