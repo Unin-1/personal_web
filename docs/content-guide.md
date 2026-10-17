@@ -328,7 +328,94 @@ api 填返回歌曲数组的接口，不是歌单网页；server 平台、type �
 
 ## 11. 发布与排错
 
-发布前执行 check、lint、test、build，在 preview 检查手机、深色、图片、搜索和音频。查看 git diff，只提交网站资源与维护文件，不提交凭证、私人资料、日志、缓存或本地助手状态。推送分支、验证后合入 main；仓库 Settings → Pages → Source 选 GitHub Actions。等待部署成功再访问 `/personal_web/`。每日北京时间06:00尝试更新外部数据，实际时间受排队影响；本地未推送文件不会被远端读取。更多见[发布说明](architecture.md)。
+保存文件、提交、推送和部署是四个步骤：保存只改本地文件，commit 把选定改动记录在本地，push 把提交上传 GitHub，Actions 检查和部署成功后线上才更新。仓库 Settings → Pages → Source 使用 GitHub Actions。开发分支 `codex/**` 只验证；合入或直接推送 `main` 后才会发布。直接推送要求远程分支规则允许；较大改动仍建议开发分支加 PR。
+
+### 在 main 手动更新并发布
+
+以下命令在 PowerShell 执行。每一步成功后再执行下一步；检查或测试失败时先修复，再继续提交。开始前确认已有改动都已妥善提交，避免把其他任务的文件混入本次更新。
+
+```powershell
+# 进入项目目录；路径中有空格，要保留引号
+Set-Location "D:\Unin Web"
+# 查看分支与未提交文件；工作区干净后再更新主分支
+git status --short --branch
+# 切回主分支
+git switch main
+# 更新到远程 main；历史分叉时停止，不自动创建合并提交
+git pull --ff-only origin main
+# 按 Node.js 24、pnpm 11 和锁文件安装依赖，不改锁文件
+pnpm install --frozen-lockfile
+# 修改文件后启动本地预览；检查完成按 Ctrl+C 停止
+npm run dev
+```
+
+修改 Markdown、配置和图片后，停止开发服务器，执行完整验证。浏览器测试使用 4321、4322 端口，Windows 使用已安装的 Edge；测试会恢复临时改动的布局文件。
+
+```powershell
+# Astro 和 TypeScript 检查
+npm run check
+# 只读代码规范检查
+npm run lint
+# Node 行为与回归测试
+npm test
+# 同步公开数据、构建静态页面、生成搜索索引并验证发布产物
+npm run build
+# 检查构建后的页面以及本地作者工作台
+npm run test:e2e
+```
+
+`build` 可能更新 `src/data/external-snapshot.json`，需审查是否将这份公开数据更新纳入本次提交。图片需连同引用它的 Markdown／配置一起提交，并记录素材来源。文章文件名决定页面路径，例如 `src/content/posts/markdown.md` 对应 `/posts/markdown/`；重命名后需同步站内手写链接和相关测试，不能只改文件名。可用下面的命令查找旧文件名的引用，将示例词替换成真正的旧名称；找不到匹配时 `rg` 返回 1 属于正常结果。
+
+```powershell
+# 搜索源代码、测试和文档里仍使用旧文件名的位置
+rg -n "旧文件名" src tests docs
+```
+
+验证通过后按实际修改的路径暂存。下面的 `git add` 仅以文章与项目介绍为例；图片、测试或配置发生变化时应逐项加入，不要照搬不相关路径。
+
+```powershell
+# 列出所有变化，确认没有误删、遗漏图片或混入其他任务
+git status --short
+# 查看未暂存的文字改动；新增文件还需在编辑器中检查
+git diff
+# 明确选择下一次提交包含的文件
+git add -- "src/content/posts/markdown.md" "src/content/projects/personal-web.md"
+# 审查暂存内容；图片还需要人工预览
+git diff --cached
+# 检查空白错误和遗留冲突标记
+git diff --cached --check
+# 创建本地提交；说明按实际内容使用 feat:、fix: 或 docs: 前缀
+git commit -m "feat: update blog content"
+# 取得开发期间远程 main 的最新状态
+git fetch origin
+# 合入远程新增提交，不改写已有历史；有冲突时先解决并重新验证
+git merge --no-edit origin/main
+# 上传本地 main；成功仅代表代码已上传
+git push origin main
+# 查看本地最新提交哈希
+git rev-parse HEAD
+# 查询远程 main；哈希应与本地一致
+git ls-remote --heads origin main
+```
+
+不要提交凭证、私人资料、日志、缓存或本地助手状态。推送被拒绝时先辨别网络、权限或历史分叉原因；不要强制推送，也不要修改已经发布的提交。需要回滚时使用 `git revert` 创建撤销提交。
+
+### GitHub 连接超时与部署状态
+
+若 Git 直连 GitHub 超时，而本机代理可以访问，可仅为当前命令指定代理。例如本机 HTTP／混合代理端口为 7890 时：
+
+```powershell
+# 临时使用代理查询远程 main；只读，不上传或保存代理设置
+git -c http.proxy=http://127.0.0.1:7890 ls-remote --heads origin main
+# 临时使用同一代理推送 main
+git -c http.proxy=http://127.0.0.1:7890 push origin main
+```
+
+代理软件需保持运行，地址和端口按本机实际配置填写。其他需要网络的 Git 命令也可以在 `git` 后加同样的 `-c http.proxy=...` 参数；不使用代理时省略该参数。
+
+推送后打开 [Actions](https://github.com/Unin-1/personal_web/actions)，找到与本次提交哈希对应的 **Validate and publish blog**。`build` 包含类型检查、规范检查、Node 测试、静态构建和浏览器测试；只有这些全部通过，后续 `deploy` 才会运行。黄色表示排队或执行中；红色时打开失败步骤读日志，修复后创建新提交并推送。`build` 和 `deploy` 都成功后访问 [线上网站](https://unin-1.github.io/personal_web/)，必要时按 Ctrl+F5 排除浏览器缓存。不要用反复推送同一内容代替检查失败日志。
+
+每日北京时间 06:00 也会尝试更新公开外部数据并重新部署，实际时间受排队影响。本地未提交或未推送的文件不会被远端读取。更多见[发布说明](architecture.md)。
 
 | 现象 | 排查方法 |
 | --- | --- |

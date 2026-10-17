@@ -86,7 +86,7 @@ test("首页、桌面与手机导航及代表视口截图", async ({ page }) => 
 });
 
 test("文章渲染 Markdown、行内与块公式、图片和标签筛选", async ({ page }) => {
-  await visit(page, "posts/markdown-and-math/");
+  await visit(page, "posts/markdown/");
   await expect(page.locator(".custom-md table")).toBeVisible();
   await expect(page.locator(".custom-md .katex").first()).toBeVisible();
   await expect(page.locator(".custom-md .katex-display")).toHaveCount(2);
@@ -97,18 +97,18 @@ test("文章渲染 Markdown、行内与块公式、图片和标签筛选", async
   await expect(page.locator("#archive-filter-header")).toBeVisible();
   const visiblePosts = page.locator(".archive-post:visible");
   await expect(visiblePosts).toHaveCount(1);
-  await expect(visiblePosts).toHaveAttribute("href", /posts\/markdown-and-math\//);
+  await expect(visiblePosts).toHaveAttribute("href", /posts\/markdown\//);
   await visit(page, "tags/");
   await expect(page.locator('a[href*="archive/?tag=LaTeX"]').first()).toBeVisible();
 });
 
 test("生产搜索返回可访问且包含项目基础路径的文章结果", async ({ page }) => {
   await visit(page, "search/?q=Markdown");
-  const result = page.locator('#content-wrapper a[href*="/posts/markdown-and-math/"]').first();
+  const result = page.locator('#content-wrapper a[href*="/posts/markdown/"]').first();
   await expect(result).toBeVisible();
-  await expect(result).toHaveAttribute("href", /^\/personal_web\/posts\/markdown-and-math\//);
+  await expect(result).toHaveAttribute("href", /^\/personal_web\/posts\/markdown\//);
   await result.click();
-  await expect(page).toHaveURL(`${site}posts/markdown-and-math/`);
+  await expect(page).toHaveURL(`${site}posts/markdown/`);
   await expect(page.locator(".custom-md .katex").first()).toBeVisible();
 });
 

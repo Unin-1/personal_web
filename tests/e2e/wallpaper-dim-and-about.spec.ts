@@ -69,7 +69,7 @@ test.afterEach(async ({ page }) => {
 test("生产壁纸遮罩在首页、归档、关于与文章页共用，并在站内导航后保留", async ({ page }) => {
   const layout = JSON.parse(await readFile(layoutFile, "utf8"));
   const alpha = layout.visual.dimOpacity;
-  for (const route of ["", "archive/", "about/", "posts/markdown-and-math/"]) {
+  for (const route of ["", "archive/", "about/", "posts/markdown/"]) {
     await page.goto(`${site}${route}`);
     const dim = page.locator(".banner-dim-overlay");
     await expect(dim).toBeVisible();

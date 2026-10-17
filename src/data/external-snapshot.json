@@ -6,12 +6,12 @@
         "repo": "Unin-1/personal_web",
         "name": "personal_web",
         "description": "my self-introduction web",
-        "language": "",
+        "language": "Astro",
         "stars": 0,
         "url": "https://github.com/Unin-1/personal_web",
         "status": "fresh",
-        "lastAttemptAt": "2026-10-17T15:01:04.839Z",
-        "lastSuccessAt": "2026-10-17T15:01:04.839Z"
+        "lastAttemptAt": "2026-10-17T17:45:40.341Z",
+        "lastSuccessAt": "2026-10-17T17:45:40.341Z"
       }
     }
   },
@@ -1918,7 +1918,7 @@
       }
     ],
     "status": "fresh",
-    "lastAttemptAt": "2026-10-17T15:01:04.839Z",
-    "lastSuccessAt": "2026-10-17T15:01:04.839Z"
+    "lastAttemptAt": "2026-10-17T17:45:40.341Z",
+    "lastSuccessAt": "2026-10-17T17:45:40.341Z"
   }
 }

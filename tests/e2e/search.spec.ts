@@ -3,7 +3,7 @@ import { expect, type Locator, type Page, test } from "@playwright/test";
 const site = "http://127.0.0.1:4322/personal_web/";
 const localPreview = "http://127.0.0.1:4321/";
 const missingQuery = "zzzznonexistentsearchresult123456";
-const articlePath = "posts/markdown-and-math/";
+const articlePath = "posts/markdown/";
 
 async function readyNavbar(page: Page) {
   const input = page.locator("#search-input-desktop");
@@ -121,7 +121,10 @@ test("本地编辑预览使用真实内容索引且链接保持本地基础路�
   await expect(result).toHaveAttribute("href", `/${articlePath}`);
   await result.click();
   await expect(page).toHaveURL(`${localPreview}${articlePath}`);
+  // Dev navigation can reload the document while compiling a new route.
+  await readyNavbar(page);
   await input.fill("Markdown");
+  await expect(result).toBeVisible();
   await input.press("Enter");
   await expect(page).toHaveURL(`${localPreview}search/?q=Markdown`);
   await expect(articleResult(page.locator("#content-wrapper"))).toBeVisible();
