@@ -206,7 +206,7 @@ RSS／Atom、站点地图、robots由构建生成，不在dist手改。主题公
 | `LinkPresets` | 预设对象表 | 只是复用菜单对象；定义了Tags预设不代表已放进links |
 | `navBarSearchConfig.method` | `NavBarSearchMethod.PageFind` | 当前仅此一种搜索实现，不填外部搜索引擎名称 |
 
-示例：在links数组增加 `{ name: "联系", url: "/about/", icon: "material-symbols:mail-outline" }`。Pagefind在build后生成索引，生产preview比单纯dev更适合验收搜索。
+示例：在links数组增加 `{ name: "联系", url: "/about/", icon: "material-symbols:mail-outline" }`。生产搜索优先使用 build 生成的 Pagefind 全文索引，下载失败时使用公开内容索引；普通 dev 和作者工作台也能搜索真实的文章、项目标题、标签和正文。草稿和加密文章不会写入公开内容索引。无需额外配置搜索服务或 API 密钥。
 
 ## announcementConfig.ts 与 FooterConfig.html
 
