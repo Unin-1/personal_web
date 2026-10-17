@@ -4,7 +4,7 @@ import path from "node:path";
 const root = path.resolve("dist");
 const base = `${(process.env.SITE_BASE || "/personal_web/").replace(/\/$/, "")}/`;
 // Album routes are checked from the links in the generated gallery index below.
-const required = ["index.html", "archive/index.html", "tags/index.html", "about/index.html", "friends/index.html", "gallery/index.html", "projects/index.html", "bilibili/index.html", "rss.xml", "pagefind/pagefind.js"];
+const required = ["index.html", "archive/index.html", "tags/index.html", "about/index.html", "friends/index.html", "gallery/index.html", "projects/index.html", "bilibili/index.html", "rss.xml", "pagefind/pagefind.js", "search-index.json"];
 const errors = [];
 for (const name of required) {
   try { await stat(path.join(root, name)); } catch { errors.push(`Missing required output: ${name}`); }

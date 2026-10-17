@@ -6,6 +6,7 @@ const targets = [
   "src/editor", "scripts/editor", "tests", "config", "src/components/home",
   "src/config/layout.json", "src/config/siteRuntimeConfig.ts", "src/utils/layout-config.ts", "src/utils/music-source.mjs",
   "src/data/external-data.ts", "src/utils/wallpaper-runtime.mjs", "src/plugins/rehype-site-base.mjs", "scripts/sync-external-data.mjs", "scripts/verify-build.mjs",
+  "src/utils/search-utils.ts", "src/pages/search-index.json.ts", "src/components/pages/anime-filter.ts",
 ];
 const result = spawnSync(process.execPath, [
   require.resolve("@biomejs/biome/bin/biome"), "check",

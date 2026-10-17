@@ -38,10 +38,11 @@ const updatedAt = data.lastSuccessAt ? new Date(data.lastSuccessAt).toLocaleStri
       <anime-filter class="block">
         <div class="card-base px-6 py-4 mb-4">
           <label for="anime-search" class="block text-sm mb-2">搜索我的追番</label>
-          <input id="anime-search" type="search" data-anime-search placeholder="输入作品名" class="anime-search w-full rounded-xl border border-(--line-divider) bg-transparent px-4 py-2" />
+          <input id="anime-search" type="search" data-anime-search aria-controls="anime-list" placeholder="输入作品名" class="anime-search w-full rounded-xl border border-(--line-divider) bg-transparent px-4 py-2" />
+          <p data-anime-count role="status" aria-live="polite" class="mt-2 text-sm anime-meta">共 {data.items.length} 部作品</p>
           <p class="mt-3 text-xs anime-meta">“番剧更新”是作品最新集数；“我的进度”和观看状态由我手动记录。</p>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div id="anime-list" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           {data.items.map((anime) => (
             <article class="anime-card card-base overflow-hidden" data-anime-title={anime.title.toLowerCase()}>
               <a href={anime.link} target="_blank" rel="noopener noreferrer" class="anime-poster focus-ring-inset" data-anime-poster aria-label={`在 Bilibili 查看 ${anime.title}`}>
@@ -68,49 +69,6 @@ const updatedAt = data.lastSuccessAt ? new Date(data.lastSuccessAt).toLocaleStri
     )}
   </section>
 </MainGridLayout>
-
-<script>
-  class AnimeFilter extends HTMLElement {
-    handleInput = () => {
-      const query = (this.querySelector<HTMLInputElement>("[data-anime-search]")?.value ?? "").trim().toLowerCase();
-      let count = 0;
-      this.querySelectorAll<HTMLElement>("[data-anime-title]").forEach((card) => {
-        card.hidden = !(card.dataset.animeTitle ?? "").includes(query);
-        if (!card.hidden) count += 1;
-      });
-      const empty = this.querySelector<HTMLElement>("[data-anime-empty]");
-      if (empty) empty.hidden = count > 0;
-    };
-    handlePosterLoad = (event: Event) => {
-      if (event.target instanceof HTMLImageElement) this.updatePoster(event.target);
-    };
-    updatePoster(image: HTMLImageElement) {
-      const frame = image.closest<HTMLElement>("[data-anime-poster]");
-      if (!frame) return;
-      const loaded = image.complete && image.naturalWidth > 0;
-      image.hidden = !loaded;
-      const fallback = frame.querySelector<HTMLElement>("[data-anime-poster-fallback]");
-      if (fallback) fallback.hidden = loaded;
-      const message = frame.querySelector<HTMLElement>("[data-anime-poster-state]");
-      if (message && !loaded) message.textContent = "封面暂时无法加载";
-    }
-    connectedCallback() {
-      this.addEventListener("input", this.handleInput);
-      // Cached images may have finished before this custom element was upgraded.
-      this.querySelectorAll<HTMLImageElement>("[data-anime-poster] img").forEach((image) => {
-        if (image.complete) this.updatePoster(image);
-      });
-      this.addEventListener("load", this.handlePosterLoad, true);
-      this.addEventListener("error", this.handlePosterLoad, true);
-    }
-    disconnectedCallback() {
-      this.removeEventListener("input", this.handleInput);
-      this.removeEventListener("load", this.handlePosterLoad, true);
-      this.removeEventListener("error", this.handlePosterLoad, true);
-    }
-  }
-  if (!customElements.get("anime-filter")) customElements.define("anime-filter", AnimeFilter);
-</script>
 
 <style>
   .anime-page {
